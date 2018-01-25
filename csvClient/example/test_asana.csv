@@ -1,0 +1,6 @@
+Task ID,Created At,Completed At,Last Modified,Name,Assignee,Due Date,Notes,Projects,Parent Task,Project ID,Number,Reporter,State,
+XXXXXXXXXX,2014-09-15,2014-10-27,2014-10-27,Task 1,John Doe,,Some task,whatever,,bug,1,import,Fixed,"#can use '=IF(C2="""",""Open"",""Fixed"")' for the N collumn"
+XXXXXXXXXX,2014-08-15,,2014-10-24,Incomplete task 2,John Doe,,Some other task,whatever,,bug,2,import,Open,
+XXXXXXXXXX,2014-10-24,2014-10-24,2014-10-24,Task 3,John Doe,,This is yet another task,whatever,,bug,3,import,Fixed,
+XXXXXXXXXX,2014-10-24,2014-10-24,2014-10-24,Task 4,John Doe,,"And the final task
+With some multi-line comment and, commas, in, it",whatever,,bug,4,import,Fixed,
