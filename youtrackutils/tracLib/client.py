@@ -1,9 +1,9 @@
 from trac.env import Environment
 from trac.attachment import Attachment
-from tracLib import *
+from youtrackutils.tracLib import *
 from ConfigParser import ConfigParser
-import tracLib
-import tracLib.timetracking
+from youtrackutils import tracLib
+from youtrackutils.tracLib import timetracking
 
 
 class Client(object):

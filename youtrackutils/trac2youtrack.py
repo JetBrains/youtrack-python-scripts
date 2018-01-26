@@ -8,11 +8,11 @@ if sys.version_info >= (3, 0):
 
 import urllib
 from youtrack.connection import Connection
-from tracLib.client import Client
+from youtrackutils.tracLib.client import Client
 import youtrack
 import re
-import tracLib
-import tracLib.defaultTrac
+import youtrackutils.tracLib
+import youtrackutils.tracLib.defaultTrac
 import youtrack.connection
 from youtrack.importHelper import *
 
@@ -45,7 +45,7 @@ def to_youtrack_user(trac_user) :
     """
     user = youtrack.User()
     user.login = trac_user.name
-    user.email = tracLib.DEFAULT_EMAIL
+    user.email = youtrackutils.tracLib.DEFAULT_EMAIL
     if not (trac_user.email is None):
         if len(trac_user.email):
             user.email = trac_user.email
@@ -93,7 +93,7 @@ def process_non_authorised_user(connection, registered_users, user_name) :
         New user login and updated list of registered users logins. If it is impossible to create
         new YT user, then user login is None.
     """
-    if tracLib.ACCEPT_NON_AUTHORISED_USERS:
+    if youtrackutils.tracLib.ACCEPT_NON_AUTHORISED_USERS:
         yt_user = to_non_authorised_youtrack_user(user_name)
         if yt_user is None:
             return None, registered_users
@@ -134,7 +134,7 @@ def to_youtrack_issue(project_ID, trac_issue, check_box_fields):
         issue.created = str(trac_issue.time)
     if trac_issue.changetime > 0:
         issue.updated = str(trac_issue.changetime)
-        # anonymous in trac == guest in youtrack
+        # anonymous in trac == guest in util
     if trac_issue.reporter is None:
         issue.reporterName = "guest"
     else:
@@ -151,10 +151,10 @@ def to_youtrack_issue(project_ID, trac_issue, check_box_fields):
                 issue[cf] = check_box_fields[cf]
         else:
             value = custom_fields[cf]
-            if cf in tracLib.FIELD_NAMES.keys():
-                cf = tracLib.FIELD_NAMES[cf]
-            if cf in tracLib.FIELD_VALUES.keys():
-                cf_values_mapping = tracLib.FIELD_VALUES[cf]
+            if cf in youtrackutils.tracLib.FIELD_NAMES.keys():
+                cf = youtrackutils.tracLib.FIELD_NAMES[cf]
+            if cf in youtrackutils.tracLib.FIELD_VALUES.keys():
+                cf_values_mapping = youtrackutils.tracLib.FIELD_VALUES[cf]
                 if value in cf_values_mapping:
                     value = cf_values_mapping[value]
             if (value is not None) and (value.strip() != ""):
@@ -241,17 +241,17 @@ def trac_values_to_youtrack_values(field_name, value_names):
         return None
     field_values = []
     for name in value_names:
-        if field_name in tracLib.FIELD_VALUES:
-            if name in tracLib.FIELD_VALUES[field_name].keys():
-                name = tracLib.FIELD_VALUES[field_name][name]
+        if field_name in youtrackutils.tracLib.FIELD_VALUES:
+            if name in youtrackutils.tracLib.FIELD_VALUES[field_name].keys():
+                name = youtrackutils.tracLib.FIELD_VALUES[field_name][name]
         if name not in field_values:
             field_values.append(name)
     return field_values
 
 
 def trac_field_name_to_yt_field_name(trac_field_name):
-    if trac_field_name in tracLib.FIELD_NAMES:
-        return tracLib.FIELD_NAMES[trac_field_name]
+    if trac_field_name in youtrackutils.tracLib.FIELD_NAMES:
+        return youtrackutils.tracLib.FIELD_NAMES[trac_field_name]
     return trac_field_name
 
 
@@ -268,7 +268,7 @@ def create_yt_custom_field(connection, project_Id, field_name, value_names):
     """
     field_values = trac_values_to_youtrack_values(field_name, value_names)
     field_name = trac_field_name_to_yt_field_name(field_name)
-    process_custom_field(connection, project_Id, tracLib.FIELD_TYPES[field_name], field_name, field_values)
+    process_custom_field(connection, project_Id, youtrackutils.tracLib.FIELD_TYPES[field_name], field_name, field_values)
 
 
 def to_youtrack_state(trac_resolution, yt_bundle) :
@@ -312,13 +312,14 @@ def create_yt_bundle_custom_field(target, project_id, field_name, trac_field_val
     create_yt_custom_field(target, project_id, field_name, [])
     field_name = trac_field_name_to_yt_field_name(field_name)
 
-    field_bundle = target.getBundle(tracLib.FIELD_TYPES[field_name][0:-3],
-                                    target.getProjectCustomField(project_id, field_name).bundle)
+    field_bundle = target.getBundle(
+        youtrackutils.tracLib.FIELD_TYPES[field_name][0:-3],
+        target.getProjectCustomField(project_id, field_name).bundle)
     values_to_add = []
     for field in trac_field_values:
-        if field_name in tracLib.FIELD_VALUES.keys():
-            if field.name in tracLib.FIELD_VALUES[field_name].keys():
-                field.name = tracLib.FIELD_VALUES[field_name][field.name]
+        if field_name in youtrackutils.tracLib.FIELD_VALUES.keys():
+            if field.name in youtrackutils.tracLib.FIELD_VALUES[field_name].keys():
+                field.name = youtrackutils.tracLib.FIELD_VALUES[field_name][field.name]
         values_to_add.append(trac_field_to_youtrack_field(field, field_bundle))
     add_values_to_bundle_safe(target, field_bundle, values_to_add)
 
@@ -326,7 +327,7 @@ def create_yt_bundle_custom_field(target, project_id, field_name, trac_field_val
 def trac2youtrack(target_url, target_login, target_password, project_ID, project_name, env_path):
     # creating connection to trac to import issues to
     client = Client(env_path)
-    # creating connection to youtrack to import issues in
+    # creating connection to util to import issues in
     target = Connection(target_url, target_login, target_password)
 
     # create project
@@ -396,12 +397,12 @@ def trac2youtrack(target_url, target_login, target_password, project_ID, project
             values = options
 
         field_name = elem.name
-        if field_name in tracLib.FIELD_NAMES.keys() :
-            field_name = tracLib.FIELD_NAMES[field_name]
+        if field_name in youtrackutils.tracLib.FIELD_NAMES.keys() :
+            field_name = youtrackutils.tracLib.FIELD_NAMES[field_name]
 
-        field_type = tracLib.CUSTOM_FIELD_TYPES[elem.type]
-        if field_name in tracLib.FIELD_TYPES.keys():
-            field_type = tracLib.FIELD_TYPES[field_name]
+        field_type = youtrackutils.tracLib.CUSTOM_FIELD_TYPES[elem.type]
+        if field_name in youtrackutils.tracLib.FIELD_TYPES.keys():
+            field_type = youtrackutils.tracLib.FIELD_TYPES[field_name]
 
         process_custom_field(target, project_ID, field_type, field_name, trac_values_to_youtrack_values(field_name, values))
         print("Creating project custom fields finished")

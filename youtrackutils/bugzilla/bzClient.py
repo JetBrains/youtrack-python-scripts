@@ -2,8 +2,8 @@ import MySQLdb
 import MySQLdb.cursors
 import time
 
-from scripts import bugzilla
-from scripts.bugzilla import *
+from youtrackutils import bugzilla
+from youtrackutils.bugzilla import *
 
 
 class Client(object):

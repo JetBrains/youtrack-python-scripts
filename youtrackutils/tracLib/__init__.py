@@ -1,3 +1,5 @@
+import client
+
 CUSTOM_FIELD_TYPES = None
 PERMISSIONS = None
 DEFAULT_EMAIL = " "

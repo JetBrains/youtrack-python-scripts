@@ -1,9 +1,9 @@
 import re
-from fbugz.fogbugz import FogBugz
-from fbugz import FBUser, FBArea, FBMilestone, FBIssue, FBComment
-import fbugz
+from youtrackutils.fbugz.fogbugz import FogBugz
+from youtrackutils.fbugz import FBUser, FBArea, FBMilestone, FBIssue, FBComment
 from datetime import datetime
 import calendar
+
 
 class FBClient(object):
     def __init__(self, source_url, source_login, source_password):

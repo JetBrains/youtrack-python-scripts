@@ -8,10 +8,10 @@ if sys.version_info >= (3, 0):
 
 import urllib2
 from youtrack.connection import Connection
-from mantis.mantisClient import MantisClient
+from youtrackutils.mantis.mantisClient import MantisClient
 from youtrack import *
-import mantis
-import mantis.defaultMantis
+import youtrackutils.mantis
+import youtrackutils.mantis.defaultMantis
 from StringIO import StringIO
 from youtrack.importHelper import *
 import youtrack.importHelper
@@ -20,7 +20,7 @@ import youtrack.importHelper
 def main():
     target_url, target_login, target_pass, mantis_db, mantis_host, mantis_port, mantis_login, mantis_pass = sys.argv[1:9]
 
-    mantis.FIELD_TYPES.update(youtrack.EXISTING_FIELD_TYPES)
+    youtrackutils.mantis.FIELD_TYPES.update(youtrack.EXISTING_FIELD_TYPES)
     mantis_product_names = [p.strip() for p in sys.argv[9:]]
     mantis2youtrack(target_url, target_login, target_pass, mantis_db, mantis_host,
         mantis_port, mantis_login, mantis_pass, mantis_product_names)
@@ -80,8 +80,8 @@ def get_yt_field_value(yt_field_name, field_type, mantis_value):
     if mantis_value is None:
         return None
     values_map = {}
-    if yt_field_name in mantis.FIELD_VALUES:
-        values_map = mantis.FIELD_VALUES[yt_field_name]
+    if yt_field_name in youtrackutils.mantis.FIELD_VALUES:
+        values_map = youtrackutils.mantis.FIELD_VALUES[yt_field_name]
 
     if isinstance(mantis_value, str) or isinstance(mantis_value, unicode):
         if mantis_value in values_map:
@@ -95,15 +95,15 @@ def get_yt_field_value(yt_field_name, field_type, mantis_value):
         return str(mantis_value)
     if isinstance(mantis_value, list):
         return [value.replace("/", " ") for value in [values_map[v] if v in values_map else v for v in mantis_value]]
-    if isinstance(mantis_value, mantis.MantisUser):
+    if isinstance(mantis_value, youtrackutils.mantis.MantisUser):
         return to_yt_user(mantis_value)
     return mantis_value
 
 
 def get_yt_field_name(mantis_field_name, target, project_id=None):
     result = None
-    if mantis_field_name in mantis.FIELD_NAMES:
-        result = mantis.FIELD_NAMES[mantis_field_name]
+    if mantis_field_name in youtrackutils.mantis.FIELD_NAMES:
+        result = youtrackutils.mantis.FIELD_NAMES[mantis_field_name]
     elif mantis_field_name in youtrack.EXISTING_FIELDS:
         result = mantis_field_name
     else:
@@ -124,8 +124,8 @@ def get_yt_field_name(mantis_field_name, target, project_id=None):
 
 
 def get_yt_field_type(field_name, target):
-    if field_name in mantis.FIELD_TYPES:
-        return mantis.FIELD_TYPES[field_name]
+    if field_name in youtrackutils.mantis.FIELD_TYPES:
+        return youtrackutils.mantis.FIELD_TYPES[field_name]
     try:
         return target.getCustomField(field_name).type
     except YouTrackException:
@@ -190,7 +190,7 @@ def to_yt_link(mantis_link):
     link = Link()
     link.source = "%s-%s" % (mantis_link.source_project_id, mantis_link.source)
     link.target = "%s-%s" % (mantis_link.target_project_id, mantis_link.target)
-    link.typeName = mantis.LINK_TYPES[mantis_link.type]
+    link.typeName = youtrackutils.mantis.LINK_TYPES[mantis_link.type]
     return link
 
 
@@ -210,8 +210,8 @@ def create_yt_custom_field(connection, mantis_field_name,
         new field name
     """
     print("Processing custom field with name [ %s ]" % mantis_field_name.encode('utf-8'))
-    field_name = mantis.FIELD_NAMES[mantis_field_name] if mantis_field_name in mantis.FIELD_NAMES else mantis_field_name
-    create_custom_field(connection, mantis.FIELD_TYPES[field_name], field_name, auto_attach,
+    field_name = youtrackutils.mantis.FIELD_NAMES[mantis_field_name] if mantis_field_name in youtrackutils.mantis.FIELD_NAMES else mantis_field_name
+    create_custom_field(connection, youtrackutils.mantis.FIELD_TYPES[field_name], field_name, auto_attach,
                         bundle_policy=attach_bundle_policy)
     return field_name
 
@@ -225,12 +225,12 @@ def process_mantis_custom_field(connection, mantis_cf_def):
         mantis_cf_def: definition of cf in mantis.
 
     """
-    # get names of custom fields in youtrack that are mapped with this prototype
-    # calculate type of custom field in youtrack
-    yt_cf_type = mantis.CF_TYPES[mantis_cf_def.type]
-    yt_name = mantis.FIELD_NAMES[mantis_cf_def.name] if mantis_cf_def.name in mantis.FIELD_NAMES else mantis_cf_def.name
-    if yt_name in mantis.FIELD_TYPES:
-        yt_cf_type = mantis.FIELD_TYPES[yt_name]
+    # get names of custom fields in util that are mapped with this prototype
+    # calculate type of custom field in util
+    yt_cf_type = youtrackutils.mantis.CF_TYPES[mantis_cf_def.type]
+    yt_name = youtrackutils.mantis.FIELD_NAMES[mantis_cf_def.name] if mantis_cf_def.name in youtrackutils.mantis.FIELD_NAMES else mantis_cf_def.name
+    if yt_name in youtrackutils.mantis.FIELD_TYPES:
+        yt_cf_type = youtrackutils.mantis.FIELD_TYPES[yt_name]
     create_custom_field(connection, yt_cf_type, yt_name, False)
 
 
@@ -260,7 +260,7 @@ def add_values_to_fields(connection, project_id, mantis_field_name, values, mant
     field_name = get_yt_field_name(mantis_field_name, connection)
     pcf = connection.getProjectCustomField(str(project_id), field_name)
     if hasattr(pcf, "bundle"):
-        value_mapping = mantis.FIELD_VALUES[field_name] if field_name in mantis.FIELD_VALUES else {}
+        value_mapping = youtrackutils.mantis.FIELD_VALUES[field_name] if field_name in youtrackutils.mantis.FIELD_VALUES else {}
         bundle = connection.getBundle(pcf.type[0:-3], pcf.bundle)
         yt_values = [v for v in [mantis_value_to_yt_value(value, bundle, value_mapping) for value in values] if
                      len(v.name)]
@@ -347,7 +347,7 @@ def mantis2youtrack(target_url, target_login, target_pass, mantis_db_name, manti
     target = Connection(target_url, target_login, target_pass)
     #connacting to mantis
     client = MantisClient(mantis_db_host, int(mantis_db_port), mantis_db_login,
-                          mantis_db_pass, mantis_db_name, mantis.CHARSET, mantis.BATCH_SUBPROJECTS)
+                          mantis_db_pass, mantis_db_name, youtrackutils.mantis.CHARSET, youtrackutils.mantis.BATCH_SUBPROJECTS)
     if not len(mantis_project_names):
         print("You should declarer at least one project to import")
         sys.exit()

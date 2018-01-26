@@ -3,7 +3,7 @@ import httplib2
 import json
 import os
 
-from jira import JiraException
+from youtrackutils.jira import JiraException
 
 _debug = os.environ.get('DEBUG')
 

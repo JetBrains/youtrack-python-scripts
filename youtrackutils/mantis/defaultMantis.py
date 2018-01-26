@@ -1,4 +1,4 @@
-import mantis
+from youtrackutils import mantis
 
 # maps the cf type in mantis with the cf type in yt
 mantis.CF_TYPES = {

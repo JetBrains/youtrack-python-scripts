@@ -19,19 +19,41 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='youtrack-scripts',
-    version='0.1.0',
-    packages=['youtrack', 'youtrack.sync'],
-    url='https://github.com/JetBrains/youtrack-python-scripts',
+    version='0.1',
+    packages=['youtrackutils',
+              'youtrackutils.bugzilla',
+              'youtrackutils.csvClient',
+              'youtrackutils.fbugz',
+              'youtrackutils.jira',
+              'youtrackutils.mantis',
+              'youtrackutils.redmine',
+              'youtrackutils.tracLib',
+              'youtrackutils.zendesk'],
+    url='https://github.com/JetBrains/youtrackutils-python-scripts',
     license='Apache 2.0',
     maintainer='Alexander Buturlinov',
     maintainer_email='imboot85@gmail.com',
     description='YouTrack import and utility scripts',
     long_description=long_description,
+    entry_points={
+        'console_scripts': [
+            'bugzilla2youtrack=youtrackutils.bugzilla2youtrack:main',
+            'csv2youtrack=youtrackutils.csv2youtrack:main',
+            'fb2youtrack=youtrackutils.fb2youtrack:main',
+            'github2youtrack=youtrackutils.github2youtrack:main',
+            'jira2youtrack=youtrackutils.jira2youtrack:main',
+            'mantis2youtrack=youtrackutils.mantis2youtrack:main',
+            'redmine2youtrack=youtrackutils.redmine2youtrack:main',
+            'trac2youtrack=youtrackutils.trac2youtrack:main',
+            'youtrack2youtrack=youtrackutils.youtrack2youtrack:main',
+            'zendesk2youtrack=youtrackutils.zendesk2youtrack:main'
+        ],
+    },
     install_requires=[
-        "youtrack",
-        "pyactiveresource",  # for Redmine import script
-        "MySQL-python",      # for BugZilla and Mantis import scripts
-        "Trac >= 1.0.1",     # for Track import script
-        "requests"           # for github import script
+        # "youtrack",
+        # "pyactiveresource",  # for Redmine import script
+        # "MySQL-python",      # for BugZilla and Mantis import scripts
+        # "Trac >= 1.0.1",     # for Track import script
+        # "requests"           # for github import script
     ]
 )

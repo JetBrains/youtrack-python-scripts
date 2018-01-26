@@ -1,4 +1,4 @@
-from tracLib import TracWorkItem, to_unix_time
+from youtrackutils.tracLib import TracWorkItem, to_unix_time
 
 class TimeTrackingPlugin(object):
     @classmethod

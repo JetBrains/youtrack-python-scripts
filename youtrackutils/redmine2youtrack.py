@@ -12,7 +12,7 @@ import re
 import getopt
 import calendar
 import urllib2
-import redmine
+import youtrackutils.redmine
 import youtrack
 import youtrack.connection
 import time
@@ -107,7 +107,7 @@ def to_unixtime(time_string):
 
 class RedmineImporter(object):
     def __init__(self, r_url, r_api_key, r_user, r_pass, y_url, y_user, y_pass, params):
-        self._source = redmine.RedmineClient(r_url, r_api_key, r_user, r_pass)
+        self._source = youtrackutils.redmine.RedmineClient(r_url, r_api_key, r_user, r_pass)
         self._target = youtrack.connection.Connection(y_url, y_user, y_pass)
         self._params = params
         self._project_lead = y_user
@@ -123,7 +123,7 @@ class RedmineImporter(object):
     def do_import(self, project_ids):
         try:
             projects2import = self._get_projects(project_ids)
-        except redmine.RedmineException as e:
+        except youtrackutils.redmine.RedmineException as e:
             print('FATAL:', e)
             sys.exit(1)
 
@@ -159,7 +159,7 @@ class RedmineImporter(object):
                 try:
                     result[pid] = self._projects[by][pid]
                 except KeyError:
-                    raise redmine.RedmineException(
+                    raise youtrackutils.redmine.RedmineException(
                         "Project '%s' doesn't exist in Redmine" % pid)
         return self._projects[by]
 
@@ -359,7 +359,7 @@ class RedmineImporter(object):
             if hasattr(role, 'permissions'):
                 permissions = []
                 for perm in role.permissions:
-                    yt_perm = redmine.Mapping.PERMISSIONS.get(perm.name)
+                    yt_perm = youtrackutils.redmine.Mapping.PERMISSIONS.get(perm.name)
                     if not yt_perm:
                         continue
                     if isinstance(yt_perm, list):
@@ -430,7 +430,7 @@ class RedmineImporter(object):
         return issue
 
     def _convert_value(self, field_name, value):
-        conv_map = redmine.Mapping.CONVERSION.get(field_name)
+        conv_map = youtrackutils.redmine.Mapping.CONVERSION.get(field_name)
         if conv_map:
             if hasattr(value, 'value'):
                 if value.value in conv_map:
@@ -441,10 +441,10 @@ class RedmineImporter(object):
         return value
 
     def _get_yt_field_name(self, field_name):
-        return redmine.Mapping.FIELD_NAMES.get(field_name, field_name)
+        return youtrackutils.redmine.Mapping.FIELD_NAMES.get(field_name, field_name)
 
     def _get_yt_field_type(self, field_name):
-        return redmine.Mapping.FIELD_TYPES.get(
+        return youtrackutils.redmine.Mapping.FIELD_TYPES.get(
             field_name, youtrack.EXISTING_FIELD_TYPES.get(field_name))
 
     def _add_field_to_issue(self, project_id, issue, name, value):

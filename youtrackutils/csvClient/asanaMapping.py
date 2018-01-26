@@ -1,4 +1,4 @@
-import csvClient
+from youtrackutils import csvClient
 
 csvClient.FIELD_NAMES = {
 #default fields (always available)

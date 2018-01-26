@@ -10,8 +10,8 @@ from youtrack.connection import Connection
 from youtrack.youtrackImporter import YouTrackImporter, YouTrackImportConfig
 from youtrack.youtrackImporter import AUTO_ATTACHED, NAME, TYPE, POLICY
 from youtrack import User, Group, Comment
-import zendesk
-from zendesk.zendeskClient import ZendeskClient
+import youtrackutils.zendesk
+from youtrackutils.zendesk.zendeskClient import ZendeskClient
 import datetime
 import calendar
 import urllib2
@@ -30,7 +30,7 @@ def zendesk2youtrack(source_url, source_login, source_password, target_url, targ
     source = ZendeskClient(source_url, source_login, source_password)
 
     importer = ZendeskYouTrackImporter(source, target, ZendeskYouTrackImportConfig(
-        zendesk.NAMES, {}, {}))
+        youtrackutils.zendesk.NAMES, {}, {}))
     importer.do_import({project_id: project_id})
 
 

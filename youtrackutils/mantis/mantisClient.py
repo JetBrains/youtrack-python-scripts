@@ -1,7 +1,6 @@
 import MySQLdb
 import MySQLdb.cursors
-from mantis import *
-import mantis
+from youtrackutils.mantis import *
 
 
 class MantisClient(object):

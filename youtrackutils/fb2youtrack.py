@@ -6,10 +6,10 @@ if sys.version_info >= (3, 0):
     print("\nThe script doesn't support python 3. Please use python 2.7+\n")
     sys.exit(1)
 
-from fbugz.fbSOAPClient import FBClient
+from youtrackutils.fbugz.fbSOAPClient import FBClient
 from youtrack.connection import Connection
 from youtrack import Group, User, Issue, Comment, Link
-import fbugz
+import youtrackutils.fbugz
 from youtrack.importHelper import *
 
 
@@ -21,7 +21,7 @@ def main() :
         print("Usage : ")
         print("fb2youtrack.py target_url target_login target_password source_url source_login source_password max_issue_id project_names")
         sys.exit()
-    project_names = fbugz.PROJECTS_TO_IMPORT
+    project_names = youtrackutils.fbugz.PROJECTS_TO_IMPORT
     if not source_url.endswith("/") :
         source_url += "/"
     fb2youtrack(target_url, target_login, target_password, source_url, source_login, source_password, project_names, max_issue_id)
@@ -105,8 +105,8 @@ def _do_import_users(target, users_to_import):
 
 
 def get_yt_name_from_fb_field_name(fb_name):
-    if fb_name in fbugz.CF_NAMES:
-        return fbugz.CF_NAMES[fb_name]
+    if fb_name in youtrackutils.fbugz.CF_NAMES:
+        return youtrackutils.fbugz.CF_NAMES[fb_name]
     return fb_name.decode('utf-8')
 
 
@@ -134,11 +134,11 @@ def to_yt_status(bundle, fb_status):
 
 
 def to_yt_field_value(field_name, value):
-    if field_name not in fbugz.CF_VALUES:
+    if field_name not in youtrackutils.fbugz.CF_VALUES:
         return value
-    if value not in fbugz.CF_VALUES[field_name]:
+    if value not in youtrackutils.fbugz.CF_VALUES[field_name]:
         return value
-    return fbugz.CF_VALUES[field_name][value]
+    return youtrackutils.fbugz.CF_VALUES[field_name][value]
 
 
 def fb2youtrack(target_url, target_login, target_password, source_url, source_login, source_password, project_names, max_issue_id) :
@@ -177,19 +177,19 @@ def fb2youtrack(target_url, target_login, target_password, source_url, source_lo
 
     field_name = u'category'
     create_bundle_with_values(target,
-                              fbugz.CF_TYPES[get_yt_name_from_fb_field_name(field_name)],
+                              youtrackutils.fbugz.CF_TYPES[get_yt_name_from_fb_field_name(field_name)],
                               common_fields[field_name],
                               source.list_categories(),
                               lambda bundle, value : bundle.createElement(to_yt_field_value(field_name, value)))
     field_name = u'priority'
-    create_bundle_with_values(target, fbugz.CF_TYPES[get_yt_name_from_fb_field_name(field_name)],
+    create_bundle_with_values(target, youtrackutils.fbugz.CF_TYPES[get_yt_name_from_fb_field_name(field_name)],
                               common_fields[field_name],
                               [elem[0] + '-' + elem[1] for elem in source.list_priorities()],
                               lambda bundle, value : bundle.createElement(to_yt_field_value(field_name, value)))
 
     field_name = u'status'
     statuses = [(to_yt_field_value(field_name, value), resolved) for (value, resolved) in source.list_statuses()]
-    create_bundle_with_values(target, fbugz.CF_TYPES[get_yt_name_from_fb_field_name(field_name)],
+    create_bundle_with_values(target, youtrackutils.fbugz.CF_TYPES[get_yt_name_from_fb_field_name(field_name)],
                               common_fields[field_name],
                               statuses, lambda bundle, value : to_yt_status(bundle, value))
 
@@ -197,7 +197,7 @@ def fb2youtrack(target_url, target_login, target_password, source_url, source_lo
 
     for name in simple_fields:
         name = get_yt_name_from_fb_field_name(name)
-        create_custom_field(target, fbugz.CF_TYPES[name], name, False)
+        create_custom_field(target, youtrackutils.fbugz.CF_TYPES[name], name, False)
 
     print('Importing users')
     for name in ['Normal', 'Deleted', 'Community', 'Virtual'] :

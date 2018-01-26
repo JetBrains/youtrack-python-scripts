@@ -1,4 +1,4 @@
-from scripts import bugzilla
+from youtrackutils import bugzilla
 
 bugzilla.FIELD_TYPES = {
     "created": "date",
@@ -41,7 +41,7 @@ bugzilla.FIELD_NAMES = {
     "component": "Subsystem",
 }
 
-# Mapping between cf types in bz and youtrack
+# Mapping between cf types in bz and util
 bugzilla.CF_TYPES = {
     "1": "string",   # FIELD_TYPE_FREETEXT
     "2": "enum[1]",  # FIELD_TYPE_SINGLE_SELECT

@@ -8,11 +8,11 @@ if sys.version_info >= (3, 0):
 
 import requests
 import csv
-import csvClient
+import youtrackutils.csvClient
 import csv2youtrack
 from youtrack.importHelper import utf8encode
 
-csvClient.FIELD_NAMES = {
+youtrackutils.csvClient.FIELD_NAMES = {
     "Project Name" : "project_name",
     "Project Id"   : "project_id",
     "Summary"      : "summary",
@@ -28,7 +28,7 @@ csvClient.FIELD_NAMES = {
     "Milestone"    : "Fix versions"
 }
 
-csvClient.FIELD_TYPES = {
+youtrackutils.csvClient.FIELD_TYPES = {
     "State"        : "state[1]",
     "Assignee"     : "user[1]",
     "Labels"       : "enum[*]",
@@ -36,8 +36,8 @@ csvClient.FIELD_TYPES = {
     "Type"         : "enum[1]"
 }
 
-csvClient.DATE_FORMAT_STRING = "%Y-%m-%dT%H:%M:%SZ"
-csvClient.VALUE_DELIMITER = "|"
+youtrackutils.csvClient.DATE_FORMAT_STRING = "%Y-%m-%dT%H:%M:%SZ"
+youtrackutils.csvClient.VALUE_DELIMITER = "|"
 
 CSV_FILE = "github2youtrack-{repo}-{data}.csv"
 
@@ -112,7 +112,7 @@ def write_issues(r, issues_csvout, comments_csvout, repo, auth):
 
         issue_row = [project, project, issue['number'], state, issue['title'],
                      issue['body'], created, updated, resolved, author or 'guest',
-                     assignee, csvClient.VALUE_DELIMITER.join(labels),
+                     assignee, youtrackutils.csvClient.VALUE_DELIMITER.join(labels),
                      issue_type, milestone]
         issues_csvout.writerow([utf8encode(e) for e in issue_row])
         

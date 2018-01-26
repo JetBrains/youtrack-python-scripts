@@ -2,7 +2,7 @@ import codecs
 import os
 import sys
 import csv
-import csvClient
+from youtrackutils import csvClient
 
 maxInt = sys.maxint
 while True:

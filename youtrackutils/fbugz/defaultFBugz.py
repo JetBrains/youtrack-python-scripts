@@ -1,4 +1,4 @@
-import fbugz
+from youtrackutils import fbugz
 
 fbugz.CF_NAMES = {
     u'assignee'          :   u'Assignee',

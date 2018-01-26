@@ -11,12 +11,12 @@ import re
 import calendar
 import time
 import datetime
-import csvClient
-from csvClient.client import Client
-import csvClient.youtrackMapping
+import youtrackutils.csvClient
+from youtrackutils.csvClient.client import Client
+import youtrackutils.csvClient.youtrackMapping
 from youtrack.youtrackImporter import *
 
-csvClient.FIELD_TYPES.update(youtrack.EXISTING_FIELD_TYPES)
+youtrackutils.csvClient.FIELD_TYPES.update(youtrack.EXISTING_FIELD_TYPES)
 from youtrack import User, Comment
 from youtrack.connection import Connection
 
@@ -33,7 +33,7 @@ def main():
 
 
 def get_project(issue):
-    for key, value in csvClient.FIELD_NAMES.items():
+    for key, value in youtrackutils.csvClient.FIELD_NAMES.items():
         if value == "project":
             return re.sub(r'\W+', "", issue[key])
 
@@ -49,7 +49,7 @@ def csv2youtrack(source_file, target_url, target_login, target_password, comment
     if attachments_file:
         source_attachments = Client(attachments_file)
 
-    config = CsvYouTrackImportConfig(csvClient.FIELD_NAMES, csvClient.FIELD_TYPES)
+    config = CsvYouTrackImportConfig(youtrackutils.csvClient.FIELD_NAMES, youtrackutils.csvClient.FIELD_TYPES)
     importer = CsvYouTrackImporter(source, target, config, source_comments, source_attachments)
     importer.import_csv()
 
@@ -101,7 +101,7 @@ class CsvYouTrackImporter(YouTrackImporter):
         if field_type == u'date':
             return self._import_config._to_unix_date(value)
         if re.match(r'^\s*(enum|version|build|ownedfield|user|group)\[\*\]s*$', field_type, re.IGNORECASE):
-            delim = getattr(csvClient, 'VALUE_DELIMITER', csvClient.CSV_DELIMITER)
+            delim = getattr(youtrackutils.csvClient, 'VALUE_DELIMITER', csvClient.CSV_DELIMITER)
             values = re.split(re.escape(delim), value)
             if len(values) > 1:
                 value = values
@@ -188,10 +188,10 @@ class CsvYouTrackImportConfig(YouTrackImportConfig):
         super(CsvYouTrackImportConfig, self).__init__(name_mapping, type_mapping, value_mapping)
 
     def _to_unix_date(self, date):
-        if csvClient.DATE_FORMAT_STRING[-2:] == "%z":
-            dt = datetime.datetime.strptime(date[:-6], csvClient.DATE_FORMAT_STRING[:-2].rstrip())
+        if youtrackutils.csvClient.DATE_FORMAT_STRING[-2:] == "%z":
+            dt = datetime.datetime.strptime(date[:-6], youtrackutils.csvClient.DATE_FORMAT_STRING[:-2].rstrip())
         else:
-            dt = datetime.datetime.strptime(date, csvClient.DATE_FORMAT_STRING)
+            dt = datetime.datetime.strptime(date, youtrackutils.csvClient.DATE_FORMAT_STRING)
         return str(calendar.timegm(dt.timetuple()) * 1000)
 
     def get_project_id_key(self):

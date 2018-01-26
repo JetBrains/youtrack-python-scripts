@@ -9,11 +9,11 @@ if sys.version_info >= (3, 0):
 import calendar
 import youtrack
 from youtrack.connection import Connection
-from bugzilla.bzClient import Client
+from youtrackutils.bugzilla.bzClient import Client
 from youtrack import *
 from StringIO import StringIO
-import bugzilla.defaultBzMapping
-import bugzilla
+import youtrackutils.bugzilla.defaultBzMapping
+import youtrackutils.bugzilla
 import os
 from youtrack.importHelper import create_custom_field, process_custom_field
 
@@ -101,8 +101,8 @@ def add_value_to_field(field_name, field_type, field_value, project_id, target):
 
 
 def get_yt_field_type(field_name, target):
-    if field_name in bugzilla.FIELD_TYPES:
-        return bugzilla.FIELD_TYPES[field_name]
+    if field_name in youtrackutils.bugzilla.FIELD_TYPES:
+        return youtrackutils.bugzilla.FIELD_TYPES[field_name]
     try:
         return target.getCustomField(field_name).type
     except YouTrackException:
@@ -110,8 +110,8 @@ def get_yt_field_type(field_name, target):
 
 
 def get_yt_field_name(field_name, target):
-    if field_name in bugzilla.FIELD_NAMES:
-        return bugzilla.FIELD_NAMES[field_name]
+    if field_name in youtrackutils.bugzilla.FIELD_NAMES:
+        return youtrackutils.bugzilla.FIELD_NAMES[field_name]
     if field_name in youtrack.EXISTING_FIELDS:
         return field_name
     try:
@@ -129,10 +129,10 @@ def to_yt_issue(bz_issue, project_id, target):
 
     for key in bz_issue.keys():
         value = bz_issue[key]
-        if bugzilla.USE_STATE_MAP and key == bugzilla.STATE_STATUS:
+        if youtrackutils.bugzilla.USE_STATE_MAP and key == youtrackutils.bugzilla.STATE_STATUS:
             bzStatus = value
             continue 
-        if bugzilla.USE_STATE_MAP and key == bugzilla.STATE_RESOLUTION:
+        if youtrackutils.bugzilla.USE_STATE_MAP and key == youtrackutils.bugzilla.STATE_RESOLUTION:
             bzRes    = value
             continue 
 
@@ -177,8 +177,8 @@ def to_yt_issue(bz_issue, project_id, target):
             yt_comment = to_yt_comment(comment, target)
             if yt_comment is not None and yt_comment.text.lstrip() != '':
                 issue.comments.append(yt_comment)
-    if bugzilla.USE_STATE_MAP:
-        prestate = bugzilla.STATE_MAP[bzStatus]
+    if youtrackutils.bugzilla.USE_STATE_MAP:
+        prestate = youtrackutils.bugzilla.STATE_MAP[bzStatus]
         resultState = None
         if isinstance(prestate, str):
             resultState = prestate
@@ -193,16 +193,16 @@ def to_yt_issue(bz_issue, project_id, target):
 
 
 def get_name_for_new_cf(cf):
-    if cf in bugzilla.FIELD_NAMES:
-        return bugzilla.FIELD_NAMES[cf]
+    if cf in youtrackutils.bugzilla.FIELD_NAMES:
+        return youtrackutils.bugzilla.FIELD_NAMES[cf]
     return cf
 
 
 def create_yt_custom_field(cf, target):
     cf_name = get_name_for_new_cf(cf.name)
-    cf_type = bugzilla.CF_TYPES[cf.type]
-    if cf_name in bugzilla.FIELD_TYPES:
-        cf_type = bugzilla.FIELD_TYPES[cf_name]
+    cf_type = youtrackutils.bugzilla.CF_TYPES[cf.type]
+    if cf_name in youtrackutils.bugzilla.FIELD_TYPES:
+        cf_type = youtrackutils.bugzilla.FIELD_TYPES[cf_name]
     create_custom_field(target, cf_type, cf_name, True)
 
 
@@ -246,7 +246,7 @@ def process_versions(versions, project_id, target):
 
 
 def get_number_in_project_field_name():
-    for key, value in bugzilla.FIELD_NAMES.items():
+    for key, value in youtrackutils.bugzilla.FIELD_NAMES.items():
         if value == "numberInProject":
             return key
 
@@ -292,9 +292,9 @@ def bugzilla2youtrack(target_url, target_login, target_pass, bz_db, bz_host, bz_
         create_yt_custom_field(cf, target)
     print("Creating custom fields finished")
 
-    for key in bugzilla.FIELD_TYPES:
+    for key in youtrackutils.bugzilla.FIELD_TYPES:
         if key not in youtrack.EXISTING_FIELDS:
-            create_custom_field(target, bugzilla.FIELD_TYPES[key], key, True, bundle_policy="1")
+            create_custom_field(target, youtrackutils.bugzilla.FIELD_TYPES[key], key, True, bundle_policy="1")
 
     bz_product_ids = []
 

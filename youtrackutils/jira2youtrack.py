@@ -19,8 +19,8 @@ import re
 import getopt
 import datetime
 import urllib2
-import jira
-from jira.client import JiraClient
+import youtrackutils.jira
+from youtrackutils.jira.client import JiraClient
 from youtrack import Issue, YouTrackException, Comment, Link, WorkItem
 import youtrack
 from youtrack.connection import Connection
@@ -245,13 +245,13 @@ def process_labels(target, issue):
 
 
 def get_yt_field_name(jira_name):
-    if jira_name in jira.FIELD_NAMES:
-        return jira.FIELD_NAMES[jira_name]
+    if jira_name in youtrackutils.jira.FIELD_NAMES:
+        return youtrackutils.jira.FIELD_NAMES[jira_name]
     return jira_name
 
 
 def get_yt_field_type(yt_name):
-    result = jira.FIELD_TYPES.get(yt_name)
+    result = youtrackutils.jira.FIELD_TYPES.get(yt_name)
     if result is None:
         result = youtrack.EXISTING_FIELD_TYPES.get(yt_name)
     return result
@@ -321,7 +321,7 @@ def create_value(target, value, field_name, field_type, project_id):
     if field_type.startswith('user'):
         create_user(target, value)
         value['name'] = value['name'].replace(' ', '_')
-    if field_name in jira.EXISTING_FIELDS:
+    if field_name in youtrackutils.jira.EXISTING_FIELDS:
         return
     if field_name.lower() not in [field.name.lower() for field in target.getProjectCustomFields(project_id)]:
         if field_name.lower() not in [field.name.lower() for field in target.getCustomFields()]:

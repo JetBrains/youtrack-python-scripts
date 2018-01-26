@@ -1,4 +1,4 @@
-import tracLib
+from youtrackutils import tracLib
 
 #if you defined your own types you should add them to the map
 TYPES = {
