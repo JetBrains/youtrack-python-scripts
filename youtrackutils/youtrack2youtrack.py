@@ -92,7 +92,7 @@ def main():
         print(e)
         usage()
         sys.exit(1)
-    except ValueError as e:
+    except ValueError:
         print('Not enough arguments')
         usage()
         sys.exit(1)
