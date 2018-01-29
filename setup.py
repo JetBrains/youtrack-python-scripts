@@ -24,7 +24,6 @@ setup(
               'youtrackutils.bugzilla',
               'youtrackutils.csvClient',
               'youtrackutils.fbugz',
-              'youtrackutils.jira',
               'youtrackutils.mantis',
               'youtrackutils.redmine',
               'youtrackutils.tracLib',
@@ -41,7 +40,6 @@ setup(
             'csv2youtrack=youtrackutils.csv2youtrack:main',
             'fb2youtrack=youtrackutils.fb2youtrack:main',
             'github2youtrack=youtrackutils.github2youtrack:main',
-            'jira2youtrack=youtrackutils.jira2youtrack:main',
             'mantis2youtrack=youtrackutils.mantis2youtrack:main',
             'redmine2youtrack=youtrackutils.redmine2youtrack:main',
             'trac2youtrack=youtrackutils.trac2youtrack:main',
@@ -52,7 +50,7 @@ setup(
     install_requires=[
         "youtrack",
         "pyactiveresource",        # for Redmine import script
-        # Commented out because the package installation can fain in case
+        # Commented out because the package installation can fail in case
         # if mysql is not installed on local machine
         # "MySQL-python",            # for BugZilla and Mantis import scripts
         "BeautifulSoup >= 3.2.0",  # for FogBugz import script
