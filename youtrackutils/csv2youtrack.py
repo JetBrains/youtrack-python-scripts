@@ -17,8 +17,9 @@ from youtrackutils import csvClient
 import youtrackutils.csvClient.youtrackMapping
 from youtrackutils.csvClient.client import Client
 from youtrack.youtrackImporter import *
-from youtrack import User, Comment
+from youtrack import User, Comment, Link
 from youtrack.connection import Connection
+from youtrack.sync.links import LinkImporter
 
 
 csvClient.FIELD_TYPES.update(youtrack.EXISTING_FIELD_TYPES)
@@ -150,9 +151,11 @@ def update_mapping(mapping_filename):
         with open(mapping_filename, 'r') as f:
             mapping_data = json.load(f)
             if 'csv_field_delimiter' in mapping_data:
-                csvClient.CSV_DELIMITER = mapping_data['csv_field_delimiter']
+                csvClient.CSV_DELIMITER = \
+                    str(mapping_data['csv_field_delimiter'])
             if 'csv_value_delimiter' in mapping_data:
-                csvClient.VALUE_DELIMITER = mapping_data['csv_value_delimiter']
+                csvClient.VALUE_DELIMITER = \
+                    str(mapping_data['csv_value_delimiter'])
             if 'date_format_string' in mapping_data:
                 csvClient.DATE_FORMAT_STRING = mapping_data['date_format_string']
             csvClient.FIELD_NAMES = mapping_data['field_names']
@@ -219,6 +222,7 @@ class CsvYouTrackImporter(YouTrackImporter):
                 if issue_id not in self._attachments:
                     self._attachments[issue_id] = []
                 self._attachments[issue_id].append(a[2:])
+        self._link_importer = LinkImporter(target)
 
     def import_csv(self, new_projects_owner_login=u'root'):
         projects = self._get_projects()
@@ -318,6 +322,40 @@ class CsvYouTrackImporter(YouTrackImporter):
             content = open(attach[2], 'rb')
             self._target.importAttachment(
                 issue_id, name, content, author, None, None, created, '')
+
+    def _import_issue_links(self, project_ids):
+        for project_id in project_ids:
+            self._link_importer.importLinks(
+                self._get_issue_links(project_id, 0, 0))
+
+    def _get_issue_links(self, project_id, after=0, limit=0):
+        key = self._import_config.get_key_for_field_name(u'Links')
+        links = []
+        for issue in self._get_issues(project_id):
+            source_id = self._get_yt_issue_id(issue)
+            self._link_importer.created_issue_ids.add(source_id)
+            if key not in issue:
+                continue
+            link_groups = issue[key].split(';')
+            for group in link_groups:
+                ids = group.split(csvClient.CSV_DELIMITER)
+                if len(ids) < 2:
+                    # Bad format.
+                    # There should be at least link type and one issue id.
+                    continue
+                link_type = ids.pop(0)
+                for i in ids:
+                    try:
+                        i = "%s-%d" % (project_id, int(i))
+                    except ValueError:
+                        pass
+                    self._link_importer.created_issue_ids.add(i)
+                    link = Link()
+                    link.typeName = link_type
+                    link.source = source_id
+                    link.target = i
+                    links.append(link)
+        return links
 
     def _get_custom_field_names(self):
         project_name_key = self._import_config.get_key_for_field_name(
