@@ -29,7 +29,7 @@ setup(
               'youtrackutils.redmine',
               'youtrackutils.tracLib',
               'youtrackutils.zendesk'],
-    url='https://github.com/JetBrains/youtrackutils-python-scripts',
+    url='https://github.com/JetBrains/youtrack-python-scripts',
     license='Apache 2.0',
     maintainer='Alexander Buturlinov',
     maintainer_email='imboot85@gmail.com',
@@ -50,10 +50,13 @@ setup(
         ],
     },
     install_requires=[
-        # "youtrack",
-        # "pyactiveresource",  # for Redmine import script
-        # "MySQL-python",      # for BugZilla and Mantis import scripts
-        # "Trac >= 1.0.1",     # for Track import script
-        # "requests"           # for github import script
+        "youtrack",
+        "pyactiveresource",        # for Redmine import script
+        # Commented out because the package installation can fain in case
+        # if mysql is not installed on local machine
+        # "MySQL-python",            # for BugZilla and Mantis import scripts
+        "BeautifulSoup >= 3.2.0",  # for FogBugz import script
+        "Trac >= 1.0.1",           # for Track import script
+        "requests"                 # for github import script
     ]
 )
