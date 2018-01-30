@@ -45,7 +45,8 @@ setup(
             'redmine2youtrack=youtrackutils.redmine2youtrack:main',
             'trac2youtrack=youtrackutils.trac2youtrack:main',
             'youtrack2youtrack=youtrackutils.youtrack2youtrack:main',
-            'zendesk2youtrack=youtrackutils.zendesk2youtrack:main'
+            'zendesk2youtrack=youtrackutils.zendesk2youtrack:main',
+            'yt-move-issue=youtrackutils.moveIssue:main'
         ],
     },
     install_requires=[
