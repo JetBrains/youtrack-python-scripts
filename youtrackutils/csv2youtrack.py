@@ -24,51 +24,77 @@ from youtrack.sync.links import LinkImporter
 
 csvClient.FIELD_TYPES.update(youtrack.EXISTING_FIELD_TYPES)
 
+help_url = "\
+https://www.jetbrains.com/help/youtrack/standalone/Import-from-CSV-File.html"
+
 
 def usage():
+    basename = os.path.basename(sys.argv[0])
+
     print("""
 Usage:
-    %s [OPTIONS] issues_file yt_url [yt_login] [yt_password]
+    %s [OPTIONS] issues_file [youtrack_url]
 
     issues_file    Issues csv file
-    mapping_file   Field mapping file (json) for csv file
-    yt_url         YouTrack base URL
-    yt_user        YouTrack user
-    yt_password    YouTrack user's password
+    youtrack_url   YouTrack base URL
     
-      To run the script you need to provide a mapping file that contains
-    information on how to map columns from your csv file to fields in YouTrack.
+    To run the script you need to provide a mapping file that describes how to
+    map columns from your csv file to fields in YouTrack.
     Otherwise a default mapping will be used but it won't match your needs in
     99.9 percents of cases.
-      To generate sample mapping file from your csv file run the script with
-    -g option. It will read columns from your csv file and build sample file.
-    Then you'll be able to modify it to feet your needs and re-run the script. 
+    To generate template for mapping file from your csv file run the script with
+    -g option. It will read columns from csv file and build sample file.
+    Then you'll be able to modify it to feet your needs and re-run the script
+    with the mapping file using -m option.
+    
+    See more info here:
+    %s 
 
 Options:
     -h,  Show this help and exit
-    -g,  Generate mapping file based on columns in csv file
+    -g,  Generate template for mapping file based on columns in csv file
+    -t TOKEN_FILE,
+         Path to file with permanent token (preferred auth method) 
+    -u LOGIN,
+         YouTrack user login to perform import on behalf of
+    -p PASSWORD,
+         YouTrack user password
     -m MAPPING_FILE,
          Path to mapping file that maps columns from csv to YouTrack fields  
     -c COMMENTS_FILE,
          Import comments from the file
     -a ATTACHMENTS_FILE,
          Import attachments from the file
-    -t TOKEN_FILE,
-         Import permanent token from the file
 
-""" % os.path.basename(sys.argv[0]))
+Examples:
+
+    Generate mapping file
+
+    $ %s -g -m mapping.json source.csv
+
+
+    Import issues using the mapping file:
+
+    $ %s -m mapping.json source.csv https://youtrack.company.com
+
+
+""" % (basename, help_url, basename, basename))
 
 
 def main():
     try:
         params = {}
-        opts, args = getopt.getopt(sys.argv[1:], 'hgm:c:a:t:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hgu:p:m:c:a:t:')
         for opt, val in opts:
             if opt == '-h':
                 usage()
                 sys.exit(0)
             elif opt == '-g':
                 params['generate_mapping'] = True
+            elif opt == '-u':
+                params['login'] = val
+            elif opt == '-p':
+                params['password'] = val
             elif opt == '-m':
                 check_file_and_save(val, params, 'mapping_file')
             elif opt == '-c':
@@ -80,14 +106,8 @@ def main():
 
         if params.get('generate_mapping', False):
             params['issues_file'] = args[0]
-        elif 'token_file' in params:
-            (params['issues_file'],
-             params['target_url']) = args
         else:
-            (params['issues_file'],
-             params['target_url'],
-             params['login'],
-             params['password']) = args
+            (params['issues_file'], params['target_url']) = args
     except getopt.GetoptError as e:
         print(e)
         usage()
@@ -123,15 +143,26 @@ def generate_mapping_file(issues_csv_filename, mapping_filename=None):
         sys.exit(1)
     source = Client(issues_csv_filename)
     mapping_data = dict(
-        __delete_me__="See more info about mapping file here: " +
-                      "https://www.jetbrains.com/help/youtrack/standalone/" +
-                      "Import-from-CSV-File.html#build-mapping-file",
-        field_names={
-            f: "put_youtrack_field_name_here" for f in source.get_header()},
+        _comment_="More info here: " + help_url + "#build-mapping-file",
+        field_names=dict(
+            {f: "map_me_to_yt_field" for f in source.get_header()}.items() +
+            {"!_mandatory_field__map_it_1": "project_id",
+             "!_mandatory_field__map_it_2": "project_name",
+             "!_mandatory_field__map_it_3": "numberInProject",
+             "!_mandatory_field__map_it_4": "summary",
+             "!_mandatory_field__map_it_5": "created",
+             "!_mandatory_field__map_it_6": "reporterName",
+             "!_yt_field_can_be_skipped_1": "updated",
+             "!_yt_field_can_be_skipped_2": "updaterName",
+             "!_yt_field_can_be_skipped_3": "description",
+             "!_yt_field_can_be_skipped_4": "resolved",
+             "!_yt_field_can_be_skipped_5": "permittedGroup"}.items()
+        ),
         field_types=dict(
-            youtrack_field_name1="field_type1",
-            youtrack_field_name2="field_type2",
-            youtrack_field_nameN="field_typeN"),
+            define_types_here="1 - single value field, * - multi-value field",
+            yt_custom_field_1="enum[1]",
+            yt_custom_field_2="enum[*]",
+        ),
         csv_field_delimiter=',',
         csv_value_delimiter=',',
         date_format_string='%Y-%m-%d %H:%M:%S'
