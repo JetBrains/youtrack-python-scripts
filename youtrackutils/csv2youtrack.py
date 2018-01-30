@@ -157,7 +157,8 @@ def update_mapping(mapping_filename):
                 csvClient.VALUE_DELIMITER = \
                     str(mapping_data['csv_value_delimiter'])
             if 'date_format_string' in mapping_data:
-                csvClient.DATE_FORMAT_STRING = mapping_data['date_format_string']
+                csvClient.DATE_FORMAT_STRING = \
+                    mapping_data['date_format_string']
             csvClient.FIELD_NAMES = mapping_data['field_names']
             csvClient.FIELD_TYPES = mapping_data['field_types']
     except (OSError, IOError) as e:
@@ -247,16 +248,16 @@ class CsvYouTrackImporter(YouTrackImporter):
 
     def get_field_value(self, field_name, field_type, value):
         if (field_name == self._import_config.get_project_name_key()) or (
-        field_name == self._import_config.get_project_id_key()):
+                field_name == self._import_config.get_project_id_key()):
             return None
         if field_type == u'date':
             return self._import_config.to_unix_date(value)
         if re.match(r'^\s*(enum|version|build|ownedfield|user|group)\[\*\]s*$',
                     field_type, re.IGNORECASE):
-            delim = getattr(csvClient,
-                            'VALUE_DELIMITER',
-                            csvClient.CSV_DELIMITER)
-            values = re.split(re.escape(delim), value)
+            delimiter = getattr(csvClient,
+                                'VALUE_DELIMITER',
+                                csvClient.CSV_DELIMITER)
+            values = re.split(re.escape(delimiter), value)
             if len(values) > 1:
                 value = values
         return super(CsvYouTrackImporter, self).get_field_value(field_name,
