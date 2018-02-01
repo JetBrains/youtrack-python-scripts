@@ -47,7 +47,7 @@ Usage:
     Then you'll be able to modify it to feet your needs and re-run the script
     with the mapping file using -m option.
     
-    See more info here:
+    For instructions, see:
     %s 
 
 Options:
@@ -129,9 +129,9 @@ def check_file_and_save(filename, params, key):
     try:
         params[key] = os.path.abspath(filename)
     except (OSError, IOError) as e:
-        print("Data file is not accessible: ")
+        print("Data file is not accessible: " + str(e))
         print(filename)
-        raise e
+        sys.exit(1)
 
 
 def generate_mapping_file(issues_csv_filename, mapping_filename=None):
@@ -143,7 +143,7 @@ def generate_mapping_file(issues_csv_filename, mapping_filename=None):
         sys.exit(1)
     source = Client(issues_csv_filename)
     mapping_data = dict(
-        _comment_="More info here: " + help_url + "#build-mapping-file",
+        __help__="For instructions, see: " + help_url + "#build-mapping-file",
         field_names=dict(
             {f: "map_me_to_yt_field" for f in source.get_header()}.items() +
             {"!_mandatory_field__map_it_1": "project_id",
@@ -172,9 +172,8 @@ def generate_mapping_file(issues_csv_filename, mapping_filename=None):
             json.dump(mapping_data, f, sort_keys=True, indent=4)
         print("Mapping file has written to " + mapping_filename)
     except (IOError, OSError) as e:
-        print "Failed to write mapping file"
-        print(mapping_filename)
-        raise e
+        print("Failed to write mapping file: " + str(e))
+        sys.exit(1)
 
 
 def update_mapping(mapping_filename):
@@ -193,11 +192,11 @@ def update_mapping(mapping_filename):
             csvClient.FIELD_NAMES = mapping_data['field_names']
             csvClient.FIELD_TYPES = mapping_data['field_types']
     except (OSError, IOError) as e:
-        print("Failed to read mapping file")
-        raise e
-    except KeyError as e:
-        print("Bad mapping file")
-        raise e
+        print("Failed to read mapping file: " + str(e))
+        sys.exit(1)
+    except (KeyError, ValueError) as e:
+        print("Bad mapping file: " + str(e))
+        sys.exit(1)
 
 
 def get_project(issue):
@@ -217,9 +216,9 @@ def csv2youtrack(params):
             try:
                 with open(params['token_file'], 'r') as f:
                     token = f.read()
-            except IOError as e:
-                print("Cannot load token from file")
-                raise e
+            except (OSError, IOError) as e:
+                print("Cannot load token from file: " + str(e))
+                sys.exit(1)
         if token:
             target = Connection(params['target_url'], token=token)
         else:
