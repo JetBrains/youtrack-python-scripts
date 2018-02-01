@@ -53,8 +53,10 @@ Usage:
 Options:
     -h,  Show this help and exit
     -g,  Generate template for mapping file based on columns in csv file
-    -t TOKEN_FILE,
-         Path to file with permanent token (preferred auth method) 
+    -T TOKEN_FILE,
+         Path to file with permanent token
+    -t TOKEN,
+         Value for permanent token as text
     -u LOGIN,
          YouTrack user login to perform import on behalf of
     -p PASSWORD,
@@ -84,7 +86,7 @@ Examples:
 def main():
     try:
         params = {}
-        opts, args = getopt.getopt(sys.argv[1:], 'hgu:p:m:c:a:t:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hgu:p:m:c:a:t:T:')
         for opt, val in opts:
             if opt == '-h':
                 usage()
@@ -102,6 +104,8 @@ def main():
             elif opt == '-a':
                 check_file_and_save(val, params, 'attachments_file')
             elif opt == '-t':
+                params['token'] = val
+            elif opt == '-T':
                 check_file_and_save(val, params, 'token_file')
 
         if params.get('generate_mapping', False):
@@ -211,19 +215,23 @@ def csv2youtrack(params):
         if params.get(s + '_file'):
             source[s] = Client(params[s + '_file'])
     if source:
-        token = None
-        if params.get('token_file', ''):
+        token = params.get('token')
+        if not token and 'token_file' in params:
             try:
                 with open(params['token_file'], 'r') as f:
-                    token = f.read()
+                    token = f.read().strip()
             except (OSError, IOError) as e:
                 print("Cannot load token from file: " + str(e))
                 sys.exit(1)
         if token:
             target = Connection(params['target_url'], token=token)
+        elif 'login' in params:
+            target = Connection(params['target_url'],
+                                params.get('login', ''),
+                                params.get('password', ''))
         else:
-            target = Connection(
-                params['target_url'], params['login'], params['password'])
+            print("You have to provide token or login/password to import data")
+            sys.exit(1)
 
         config = CsvYouTrackImportConfig(csvClient.FIELD_NAMES,
                                          csvClient.FIELD_TYPES)
