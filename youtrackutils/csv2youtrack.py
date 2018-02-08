@@ -77,7 +77,7 @@ Examples:
 
     Import issues using the mapping file:
 
-    $ %s -m mapping.json source.csv https://youtrack.company.com
+    $ %s -T token -m mapping.json source.csv https://youtrack.company.com
 
 
 """ % (basename, help_url, basename, basename))
@@ -116,7 +116,7 @@ def main():
         print(e)
         usage()
         sys.exit(1)
-    except (ValueError, KeyError):
+    except (ValueError, KeyError, IndexError):
         print("Bad arguments")
         usage()
         sys.exit(1)
@@ -149,7 +149,8 @@ def generate_mapping_file(issues_csv_filename, mapping_filename=None):
     mapping_data = dict(
         __help__="For instructions, see: " + help_url + "#build-mapping-file",
         field_names=dict(
-            {f: "map_me_to_yt_field" for f in source.get_header()}.items() +
+            {f: "map_me_to_yt_field" for f in source.get_header()
+             if f.lower() not in ('links', 'tags')}.items() +
             {"!_mandatory_field__map_it_1": "project_id",
              "!_mandatory_field__map_it_2": "project_name",
              "!_mandatory_field__map_it_3": "numberInProject",
@@ -211,7 +212,7 @@ def get_project(issue):
 
 def csv2youtrack(params):
     source = dict()
-    for s in ('issues', 'comments', 'attachments', 'links'):
+    for s in ('issues', 'comments', 'attachments'):
         if params.get(s + '_file'):
             source[s] = Client(params[s + '_file'])
     if source:
