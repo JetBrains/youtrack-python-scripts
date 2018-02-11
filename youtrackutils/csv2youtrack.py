@@ -170,12 +170,13 @@ def generate_mapping_file(issues_csv_filename, mapping_filename=None):
         ),
         csv_field_delimiter=',',
         csv_value_delimiter=',',
-        date_format_string='%Y-%m-%d %H:%M:%S'
+        date_format_string='%Y-%m-%d %H:%M:%S',
+        use_markdown='no'
     )
     try:
         with open(mapping_filename, 'w') as f:
             json.dump(mapping_data, f, sort_keys=True, indent=4)
-        print("Mapping file has written to " + mapping_filename)
+        print("Mapping file has been written to " + mapping_filename)
     except (IOError, OSError) as e:
         print("Failed to write mapping file: " + str(e))
         sys.exit(1)
@@ -194,6 +195,9 @@ def update_mapping(mapping_filename):
             if 'date_format_string' in mapping_data:
                 csvClient.DATE_FORMAT_STRING = \
                     mapping_data['date_format_string']
+            if 'use_markdown' in mapping_data:
+                if mapping_data['use_markdown'].lower() in ("yes", "true", "1"):
+                    csvClient.USE_MARKDOWN = True
             csvClient.FIELD_NAMES = mapping_data['field_names']
             csvClient.FIELD_TYPES = mapping_data['field_types']
     except (OSError, IOError) as e:
@@ -270,20 +274,22 @@ class CsvYouTrackImporter(YouTrackImporter):
         self.do_import(projects, new_projects_owner_login)
 
     def _to_yt_comment(self, comment):
-        if isinstance(comment, str) or isinstance(comment, unicode):
+        result = None
+        if isinstance(comment, basestring):
             result = Comment()
             result.author = u'guest'
             result.text = comment
             result.created = str(int(time.time() * 1000))
-            return result
-        if isinstance(comment, list):
+        elif isinstance(comment, list):
             yt_user = self._to_yt_user(comment[0])
             self._import_user(yt_user)
             result = Comment()
             result.author = yt_user.login
             result.created = self._import_config.to_unix_date(comment[1])
             result.text = comment[2]
-            return result
+        if result and getattr(csvClient, 'USE_MARKDOWN', False):
+            result.markdown = "true"
+        return result
 
     def get_field_value(self, field_name, field_type, value):
         if (field_name == self._import_config.get_project_name_key()) or (
@@ -338,9 +344,15 @@ class CsvYouTrackImporter(YouTrackImporter):
 
     def _get_issues(self, project_id):
         issues = self._source.get_issues()
-        for issue in issues:
-            if self._import_config.get_project(issue)[0] == project_id:
-                yield issue
+        if getattr(csvClient, 'USE_MARKDOWN', False):
+            for issue in issues:
+                if self._import_config.get_project(issue)[0] == project_id:
+                    issue['markdown'] = "true"
+                    yield issue
+        else:
+            for issue in issues:
+                if self._import_config.get_project(issue)[0] == project_id:
+                    yield issue
 
     def _get_comments(self, issue):
         if self._comments:
