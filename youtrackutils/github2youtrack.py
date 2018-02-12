@@ -38,6 +38,7 @@ youtrackutils.csvClient.FIELD_TYPES = {
 
 youtrackutils.csvClient.DATE_FORMAT_STRING = "%Y-%m-%dT%H:%M:%SZ"
 youtrackutils.csvClient.VALUE_DELIMITER = "|"
+youtrackutils.csvClient.USE_MARKDOWN = True
 
 CSV_FILE = "github2youtrack-{repo}-{data}.csv"
 
