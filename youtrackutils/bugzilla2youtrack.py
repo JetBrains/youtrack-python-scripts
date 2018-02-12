@@ -173,7 +173,10 @@ def to_yt_issue(bz_issue, project_id, target):
 
         issue[field_name] = value
     if "comments" in bz_issue:
-        for comment in bz_issue["comments"]:
+        comments = bz_issue.get("comments")
+        if comments:
+            issue.description = comments.pop(0).content
+        for comment in comments:
             yt_comment = to_yt_comment(comment, target)
             if yt_comment is not None and yt_comment.text.lstrip() != '':
                 issue.comments.append(yt_comment)
