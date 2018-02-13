@@ -47,7 +47,7 @@ def main():
     github_user, github_password, github_repo, youtrack_url, youtrack_login, youtrack_password = sys.argv[1:8]
     if github_repo.find('/') > -1:
         github_repo_owner, github_repo = github_repo.split('/')
-        github_repo = github_repo.replace('/', '_')
+        github_repo = github_repo.replace('/', '_').replace('-', '_')
     else:
         github_repo_owner = github_user
     issues_csv_file = CSV_FILE.format(repo=github_repo, data='issues')
