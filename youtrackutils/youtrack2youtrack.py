@@ -199,6 +199,9 @@ def enable_time_tracking(source, target, project_id):
             if src_settings.Enabled:
                 print("Enabling Time Tracking")
                 target.setProjectTimeTrackingSettings(project_id, f_est, f_spent, True)
+                # Sync work types
+                for t in source.get_work_types(project_id):
+                    target.create_project_work_type(project_id, work_type=t)
                 return True
     return False
 
