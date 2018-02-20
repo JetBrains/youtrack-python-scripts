@@ -530,6 +530,9 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
                             if new_workitems:
                                 print("Process workitems for issue [ " + issue.id + "]")
                                 try:
+                                    user_importer.importUsersRecursively(
+                                        [source.getUser(w.authorLogin)
+                                         for w in new_workitems])
                                     target.importWorkItems(issue.id, new_workitems)
                                 except youtrack.YouTrackException as e:
                                     if e.response.status == 404:
