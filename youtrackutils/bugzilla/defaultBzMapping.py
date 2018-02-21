@@ -9,6 +9,7 @@ bugzilla.FIELD_TYPES = {
     "Subsystem": "ownedField[1]",
     "Affected versions": "version[*]",
     "Severity": "enum[1]",
+    "State": "state[1]",
     "Status": "state[1]",
     "Resolution": "state[1]",
     "Platform": "enum[1]",
@@ -27,8 +28,8 @@ bugzilla.FIELD_NAMES = {
     "voters": "voterName",
     "assigned_to": "Assignee",
     "bug_severity": "Severity",
-    "resolution": "State",
-    "bug_status": "State",
+    "resolution": "Resolution",
+    "bug_status": "Status",
     "creation_ts": "created",
     "OS": "Platform",
     "rep_platform": "Platform",
@@ -74,5 +75,6 @@ bugzilla.STATE_MAP = {
     "IN_PROGRESS": "In Progress",
     "DUPLICATE": "Duplicate",
     "VERIFIED": "Verified",
-    "RESOLVED": {"FIXED": "Fixed", "*": "Won\'t fix", "DUPLICATE": "Duplicate"}
+    "RESOLVED": {"FIXED": "Fixed", "*": "Won\'t fix", "DUPLICATE": "Duplicate"},
+    "CLOSED": {"FIXED": "Fixed", "*": "Won\'t fix", "DUPLICATE": "Duplicate"}
 }

@@ -11,6 +11,11 @@ CF_TYPES = dict([])
 ACCEPT_EMPTY_COMMENTS = True
 BZ_DB_CHARSET = ''
 
+USE_STATE_MAP = False
+STATE_MAP = dict([])
+STATE_STATUS = "bug_status"
+STATE_RESOLUTION = "resolution"
+
 
 class BzUser(object):
     def __init__(self, id):

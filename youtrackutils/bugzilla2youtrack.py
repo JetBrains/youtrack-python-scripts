@@ -28,7 +28,6 @@ def main():
         bz_product_names = sys.argv[9:]
     except:
         sys.exit()
-        #    issues_filter = lambda issue: ("bug_status" in issue) and (issue["bug_status"] in ['UNCONFIRMED', 'NEW', 'ASSIGNED', 'REOPENED'])
     bugzilla2youtrack(target_url, target_login, target_pass, bz_db, bz_host, bz_port, bz_login, bz_pass,
         bz_product_names, lambda issue: True)
 
@@ -129,12 +128,11 @@ def to_yt_issue(bz_issue, project_id, target):
 
     for key in bz_issue.keys():
         value = bz_issue[key]
-        if youtrackutils.bugzilla.USE_STATE_MAP and key == youtrackutils.bugzilla.STATE_STATUS:
-            bzStatus = value
-            continue 
-        if youtrackutils.bugzilla.USE_STATE_MAP and key == youtrackutils.bugzilla.STATE_RESOLUTION:
-            bzRes    = value
-            continue 
+        if youtrackutils.bugzilla.USE_STATE_MAP:
+            if key.lower() == youtrackutils.bugzilla.STATE_STATUS.lower():
+                bzStatus = value
+            if key.lower() == youtrackutils.bugzilla.STATE_RESOLUTION.lower():
+                bzRes = value
 
         if key in ['flags', 'tags', 'attachments', 'comments']:
             continue
@@ -181,16 +179,24 @@ def to_yt_issue(bz_issue, project_id, target):
             if yt_comment is not None and yt_comment.text.lstrip() != '':
                 issue.comments.append(yt_comment)
     if youtrackutils.bugzilla.USE_STATE_MAP:
-        prestate = youtrackutils.bugzilla.STATE_MAP[bzStatus]
-        resultState = None
-        if isinstance(prestate, str):
-            resultState = prestate
-        else:
-            if bzRes in prestate:
-                resultState = prestate[bzRes]
+        field_name = 'State'
+        field_type = get_yt_field_type(field_name, target)
+        if field_type and bzStatus in youtrackutils.bugzilla.STATE_MAP:
+            pre_state = youtrackutils.bugzilla.STATE_MAP[bzStatus]
+            if isinstance(pre_state, basestring):
+                value = pre_state
+            elif isinstance(pre_state, dict):
+                if bzRes in pre_state:
+                    value = pre_state[bzRes]
+                elif '*' in pre_state:
+                    value = pre_state['*']
+                else:
+                    value = bzStatus
             else:
-                resultState = prestate["*"]
-        issue["State"] = resultState
+                value = str(pre_state)
+            add_value_to_field(
+                field_name, field_type, value, project_id, target)
+            issue[field_name] = value
 
     return issue
 
@@ -339,12 +345,15 @@ def bugzilla2youtrack(target_url, target_login, target_pass, bz_db, bz_host, bz_
                     target.executeCommand(str(product_id) + "-" + str(issue[get_number_in_project_field_name()]),
                         "tag " + t.encode('utf8'))
             for issue in batch:
+                issue_id = str(product_id) + '-' + \
+                           str(issue[get_number_in_project_field_name()])
                 for attach in issue["attachments"]:
-                    print("Processing attachment [ %s ]" % (attach.name.encode('utf8')))
+                    print("Processing attachment [ %s ] for issue %s" %
+                          (attach.name.encode('utf8'), issue_id))
                     content = StringIO(attach.content)
-                    target.createAttachment(str(product_id) + "-" + str(issue[get_number_in_project_field_name()]),
-                        attach.name, content, attach.reporter.login
-                        , created=str(int(attach.created) * 1000))
+                    target.importAttachment(
+                        issue_id, attach.name, content, attach.reporter.login,
+                        None, None, str(int(attach.created) * 1000))
         print("Importing issues to project [ %s ] finished" % product_id)
 
     # todo add pagination to links
