@@ -196,7 +196,8 @@ def update_mapping(mapping_filename):
                 csvClient.DATE_FORMAT_STRING = \
                     mapping_data['date_format_string']
             if 'use_markdown' in mapping_data:
-                if mapping_data['use_markdown'].lower() in ("yes", "true", "1"):
+                if str(mapping_data['use_markdown']).lower() \
+                        in ("yes", "true", "1"):
                     csvClient.USE_MARKDOWN = True
             csvClient.FIELD_NAMES = mapping_data['field_names']
             csvClient.FIELD_TYPES = mapping_data['field_types']
