@@ -592,6 +592,7 @@ class RedmineImporter(object):
                     self._target.createAttachmentFromAttachment(
                         self._get_yt_issue_id(issue),
                         RedmineAttachment(attach, self._source))
+                    break
                 except Exception as e:
                     print(e)
                     if attempts:
