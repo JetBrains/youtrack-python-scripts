@@ -19,7 +19,7 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='youtrack-scripts',
-    version='0.1.9',
+    version='0.1.10',
     python_requires='>=2.6, <3',
     packages=['youtrackutils',
               'youtrackutils.bugzilla',
@@ -28,6 +28,7 @@ setup(
               'youtrackutils.mantis',
               'youtrackutils.redmine',
               'youtrackutils.tracLib',
+              'youtrackutils.utils',
               'youtrackutils.zendesk'],
     url='https://github.com/JetBrains/youtrack-python-scripts',
     license='Apache 2.0',
