@@ -52,8 +52,14 @@ def main():
         github_repo_owner = github_user
     issues_csv_file = CSV_FILE.format(repo=github_repo, data='issues')
     comments_csv_file = CSV_FILE.format(repo=github_repo, data='comments')
-    github2csv(issues_csv_file, comments_csv_file, github_user, github_password, github_repo, github_repo_owner)
-    csv2youtrack.csv2youtrack(issues_csv_file, youtrack_url, youtrack_login, youtrack_password, comments_csv_file)
+    github2csv(issues_csv_file, comments_csv_file,
+               github_user, github_password, github_repo, github_repo_owner)
+    csv2youtrack.csv2youtrack(
+        dict(issues_file=issues_csv_file,
+             target_url=youtrack_url,
+             login=youtrack_login,
+             password=youtrack_password,
+             comments_file=comments_csv_file))
 
 
 def get_last_part_of_url(url_string):
