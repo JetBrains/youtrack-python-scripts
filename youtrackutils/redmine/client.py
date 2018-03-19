@@ -5,6 +5,8 @@ from pyactiveresource.connection import ResourceNotFound, MethodNotAllowed, Serv
 
 
 class RedmineResource(ActiveResource):
+    root_element = None
+
     def __init__(self, attributes=None, prefix_options=None):
         if isinstance(attributes, basestring):
             self.name = attributes
@@ -13,39 +15,73 @@ class RedmineResource(ActiveResource):
     def __repr__(self):
         return pprint.pformat(self.attributes, indent=2, width=140)
 
+    @classmethod
+    def _build_list(cls, elements, prefix_options=None):
+        if cls.root_element is not None and \
+                isinstance(elements, dict) and cls.root_element in elements:
+            elements = elements[cls.root_element]
+        return super(RedmineResource, cls)._build_list(elements, prefix_options)
 
-class Project(RedmineResource): pass
 
-class Issue(RedmineResource): pass
+class Project(RedmineResource):
+    pass
 
-class Group(RedmineResource): pass
 
-class User(RedmineResource): pass
+class Issue(RedmineResource):
+    root_element = 'issues'
 
-class Membership(RedmineResource): pass
 
-class Role(RedmineResource): pass
+class Group(RedmineResource):
+    pass
 
-class Version(RedmineResource): pass
 
-class IssueCategory(RedmineResource): pass
+class User(RedmineResource):
+    root_element = 'users'
 
-class TimeEntry(RedmineResource): pass
 
-class Permission(RedmineResource): pass
+class Membership(RedmineResource):
+    root_element = 'memberships'
 
-class CustomField(RedmineResource): pass
 
-class RedmineException(Exception): pass
+class Role(RedmineResource):
+    pass
+
+
+class Version(RedmineResource):
+    pass
+
+
+class IssueCategory(RedmineResource):
+    pass
+
+
+class TimeEntry(RedmineResource):
+    pass
+
+
+class Permission(RedmineResource):
+    pass
+
+
+class CustomField(RedmineResource):
+    pass
+
+
+class RedmineException(Exception):
+    pass
 
 
 class RedmineClient(object):
 
-    def __init__(self, api_key, url, login, password):
+    def __init__(self, api_key, url, login=None, password=None):
         RedmineResource.site = url
         if api_key is not None:
             RedmineResource.headers = {'X-Redmine-API-Key': api_key}
         else:
+            if login is None:
+                login = ''
+            if password is None:
+                password = ''
             self._user = login
             self._password = password
             RedmineResource.user = login

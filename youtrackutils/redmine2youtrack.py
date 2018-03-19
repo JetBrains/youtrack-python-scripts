@@ -2,6 +2,8 @@
 
 import sys
 
+from youtrackutils.utils.mapfile import dump_map_file, load_map_file
+
 if sys.version_info >= (3, 0):
     print("\nThe script doesn't support python 3. Please use python 2.7+\n")
     sys.exit(1)
@@ -14,8 +16,8 @@ import calendar
 import urllib2
 import youtrackutils.redmine
 import youtrack
-import youtrack.connection
 import time
+from youtrack.connection import Connection
 from youtrack.importHelper import create_bundle_safe
 from datetime import datetime
 from dateutil import parser
@@ -25,67 +27,149 @@ sys.stderr = sys.stdout
 
 CHUNK_SIZE = 100
 
+help_url = "\
+https://www.jetbrains.com/help/youtrack/standalone/Import-from-Redmine.html"
+
 
 def usage():
     basename = os.path.basename(sys.argv[0])
     print("""
 Usage:
-    %s [-t] [-s] [-l] -a api_key r_url y_url y_user y_password [project_id ...]
-    %s [-t] [-s] [-l] r_url r_user r_pass y_url y_user y_password [project_id ...]
+    %s [OPTIONS] rm_url yt_url [project_id ...]
 
-    r_url          Redmine URL
-    r_user         Redmine user
-    r_password     Redmine user's password
-    y_url          YouTrack URL
-    y_user         YouTrack user
-    y_password     YouTrack user's password
-    project_id     Redmine project identifier
+    rm_url         Redmine URL
+    yt_url         YouTrack URL
+    project_id     Redmine project identifier (can be found on project's page)
+    
+        The script uses default mapping settings to import data from source
+    tracker, like how fields from source tracker should be imported to YouTrack.
+        If you wish to modify the settings you can run the script with -g option
+    to generate mapping file Then you'll be able to modify the file to feet your
+    needs and re-run the script with the mapping file using -m option.
+
+    For instructions, see:
+    %s
 
 Options:
-    -a api_key     Redmine API Key
-    -t             Import time entries (works only with YouTrack 4.2 or higher)
-    -h             Show this help and exit
-    -l             Create a field linking imported redmine tasks with youtrack's
-    -s             Skip import of an issue in case of server errors (instead of breaking the whole process) 
-""" % (basename, basename))
+    -h,  Show this help and exit
+    -T TOKEN_FILE,
+         Path to file with permanent token
+    -t TOKEN,
+         Value for permanent token as text
+    -a API_KEY
+         Redmine API Key
+    -u LOGIN,
+         YouTrack user login to perform import on behalf of
+    -p PASSWORD,
+         YouTrack user password
+    -U LOGIN,
+         Redmine user login to perform import on behalf of
+    -P PASSWORD,
+         Redmine user password
+    -m MAPPING_FILE,
+         Path to mapping file that maps columns from csv to YouTrack fields
+    -g   Generate mapping file from the defaults
+    -w   Import time entries (works only with YouTrack 4.2 or higher)
+    -l   Create a field linking imported redmine tasks with youtrack's
+    -s   Skip an issue in case of server errors (instead terminating import)
+
+Examples:
+
+    Generate mapping file (can be customized and used for further import)
+
+    $ %s -g -m mapping.json
+
+
+    Import issues using the mapping file:
+
+    $ %s -T token -a key http://redmine.company.com http://yt.company.com test 
+""" % (basename, help_url, basename, basename))
 
 
 def main():
     try:
         params = {}
-        r_api_key = None
-        opts, args = getopt.getopt(sys.argv[1:], 'htsla:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hwsla:gu:p:U:P:m:t:T:')
         for opt, val in opts:
             if opt == '-h':
                 usage()
                 sys.exit(0)
-            if opt == '-t':
+            if opt == '-w':
                 params['import_time_entries'] = True
             if opt == '-a':
-                r_api_key = val
+                params['rm_api_key'] = val
             if opt == '-l':
                 params['create_redmine_linkage'] = True
             if opt == '-s':
                 params['skip_on_error'] = True
-        if r_api_key:
-            r_url, y_url, y_user, y_password = args[:4]
-            project_ids = args[4:]
-            redmine_importer = RedmineImporter(
-                r_api_key, r_url, None, None, y_url, y_user, y_password, params)
-        else:
-            r_url, r_user, r_password, y_url, y_user, y_password = args[:6]
-            project_ids = args[6:]
-            redmine_importer = RedmineImporter(
-                None, r_url, r_user, r_password, y_url, y_user, y_password, params)
+            elif opt == '-g':
+                params['generate_mapping'] = True
+            elif opt == '-u':
+                params['yt_login'] = val
+            elif opt == '-p':
+                params['yt_password'] = val
+            elif opt == '-U':
+                params['rm_login'] = val
+            elif opt == '-P':
+                params['rm_password'] = val
+            elif opt == '-m':
+                check_file_and_save(val, params, 'mapping_file')
+            elif opt == '-t':
+                params['token'] = val
+            elif opt == '-T':
+                check_file_and_save(val, params, 'token_file')
     except getopt.GetoptError as e:
         print(e)
         usage()
         sys.exit(1)
-    except ValueError:
-        print('Not enough arguments')
+
+    if params.get('generate_mapping', False):
+        return dump_map_file(get_mappings(), params.get('mapping_file'))
+
+    try:
+        params['rm_url'] = args[0]
+        params['yt_url'] = args[1]
+        project_ids = args[2:]
+    except (ValueError, KeyError, IndexError):
+        print("Bad arguments")
         usage()
         sys.exit(1)
-    redmine_importer.do_import(project_ids)
+
+    if 'mapping_file' in params:
+        update_mappings(load_map_file(params['mapping_file']))
+
+    RedmineImporter(params).do_import(project_ids)
+
+
+def check_file_and_save(filename, params, key):
+    try:
+        params[key] = os.path.abspath(filename)
+    except (OSError, IOError) as e:
+        print("Data file is not accessible: " + str(e))
+        print(filename)
+        sys.exit(1)
+
+
+def get_mappings():
+    return dict(
+        __help__="For instructions, see: " + help_url +
+                 "#customize-mapping-file",
+        field_names=youtrackutils.redmine.Mapping.FIELD_NAMES,
+        field_types=youtrackutils.redmine.Mapping.FIELD_TYPES,
+        conversion=youtrackutils.redmine.Mapping.CONVERSION,
+        permissions=youtrackutils.redmine.Mapping.PERMISSIONS
+    )
+
+
+def update_mappings(mapping_data):
+    if 'field_names' in mapping_data:
+        youtrackutils.redmine.Mapping.FIELD_NAMES = mapping_data['field_names']
+    if 'field_types' in mapping_data:
+        youtrackutils.redmine.Mapping.FIELD_TYPES = mapping_data['field_types']
+    if 'conversion' in mapping_data:
+        youtrackutils.redmine.Mapping.CONVERSION = mapping_data['conversion']
+    if 'permissions' in mapping_data:
+        youtrackutils.redmine.Mapping.PERMISSIONS = mapping_data['permissions']
 
 
 def to_unixtime(time_string):
@@ -106,11 +190,8 @@ def to_unixtime(time_string):
 
 
 class RedmineImporter(object):
-    def __init__(self, r_url, r_api_key, r_user, r_pass, y_url, y_user, y_pass, params):
-        self._source = youtrackutils.redmine.RedmineClient(r_url, r_api_key, r_user, r_pass)
-        self._target = youtrack.connection.Connection(y_url, y_user, y_pass)
+    def __init__(self, params):
         self._params = params
-        self._project_lead = y_user
         self._projects = None
         self._max_issue_ids = {}
         self._issue_ids = {}
@@ -119,6 +200,42 @@ class RedmineImporter(object):
         self._groups = {}
         self._subsystems = {}
         self._versions = {}
+
+        # Connecting to Redmine
+        if 'rm_api_key' in params:
+            self._source = youtrackutils.redmine.RedmineClient(
+                params['rm_api_key'],
+                params['rm_url']
+            )
+        elif 'rm_user' in params:
+            self._source = youtrackutils.redmine.RedmineClient(
+                None,
+                params['rm_url'],
+                params.get('rm_login'),
+                params.get('rm_password')
+            )
+        else:
+            print("You have to provide Redmine API key or login/password")
+            sys.exit(1)
+
+        # Connecting to YouTrack
+        token = params.get('token')
+        if not token and 'token_file' in params:
+            try:
+                with open(params['token_file'], 'r') as f:
+                    token = f.read().strip()
+            except (OSError, IOError) as e:
+                print("Cannot load token from file: " + str(e))
+                sys.exit(1)
+        if token:
+            self._target = Connection(params['yt_url'], token=token)
+        elif 'yt_login' in params:
+            self._target = Connection(params['yt_url'],
+                                      params.get('yt_login'),
+                                      params.get('yt_password'))
+        else:
+            print("You have to provide YouTrack token or login/password")
+            sys.exit(1)
 
     def do_import(self, project_ids):
         try:
@@ -182,7 +299,7 @@ class RedmineImporter(object):
         if hasattr(project, 'description') and project.description is not None:
             project_desc = project.description
 
-        print("===> Importing Project '%s' (%s)" % \
+        print("===> Importing Project '%s' (%s)" %
               (project_name.encode('utf-8'), project_id.encode('utf-8')))
         try:
             print('Creating project...')
@@ -190,7 +307,7 @@ class RedmineImporter(object):
             print('Project already exists')
         except youtrack.YouTrackException:
             self._target.createProjectDetailed(
-                project_id, project_name, project_desc, self._project_lead)
+                project_id, project_name, project_desc, 'root')
             print('Project successfully created')
         print('Import project members...')
         self._import_members(project)
@@ -359,7 +476,12 @@ class RedmineImporter(object):
             if hasattr(role, 'permissions'):
                 permissions = []
                 for perm in role.permissions:
-                    yt_perm = youtrackutils.redmine.Mapping.PERMISSIONS.get(perm.name)
+                    if isinstance(perm, basestring):
+                        rm_perm = perm
+                    else:
+                        rm_perm = perm.name
+                    yt_perm = \
+                        youtrackutils.redmine.Mapping.PERMISSIONS.get(rm_perm)
                     if not yt_perm:
                         continue
                     if isinstance(yt_perm, list):
