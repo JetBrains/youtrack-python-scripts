@@ -68,6 +68,8 @@ Options:
          Redmine user password
     -m MAPPING_FILE,
          Path to mapping file that maps columns from csv to YouTrack fields
+    -d PROJECT_LEAD_LOGIN
+         YouTrack user to set as project lead for imported projects 
     -g   Generate mapping file from the defaults
     -w   Import time entries (works only with YouTrack 4.2 or higher)
     -l   Create a field linking imported redmine tasks with youtrack's
@@ -89,7 +91,7 @@ Examples:
 def main():
     try:
         params = {}
-        opts, args = getopt.getopt(sys.argv[1:], 'hwsla:gu:p:U:P:m:t:T:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hwsla:gu:p:U:P:m:t:T:d:')
         for opt, val in opts:
             if opt == '-h':
                 usage()
@@ -118,6 +120,8 @@ def main():
                 params['token'] = val
             elif opt == '-T':
                 check_file_and_save(val, params, 'token_file')
+            elif opt == '-d':
+                params['project_lead_login'] = val
     except getopt.GetoptError as e:
         print(e)
         usage()
@@ -237,6 +241,17 @@ class RedmineImporter(object):
             print("You have to provide YouTrack token or login/password")
             sys.exit(1)
 
+        if not params.get('project_lead_login'):
+            project_lead = params.get('yt_login')
+            if not project_lead:
+                for login in ('root', 'admin', 'administrator', 'guest'):
+                    try:
+                        project_lead = self._target.getUser(login).login
+                        break
+                    except youtrack.YouTrackException:
+                        continue
+            self._params['project_lead_login'] = project_lead
+
     def do_import(self, project_ids):
         try:
             projects2import = self._get_projects(project_ids)
@@ -296,6 +311,8 @@ class RedmineImporter(object):
         project_id = project.identifier
         project_name = self._get_project_name(project)
         project_desc = ''
+        project_lead = self._params['project_lead_login']
+
         if hasattr(project, 'description') and project.description is not None:
             project_desc = project.description
 
@@ -307,7 +324,7 @@ class RedmineImporter(object):
             print('Project already exists')
         except youtrack.YouTrackException:
             self._target.createProjectDetailed(
-                project_id, project_name, project_desc, 'root')
+                project_id, project_name, project_desc, project_lead)
             print('Project successfully created')
         print('Import project members...')
         self._import_members(project)
