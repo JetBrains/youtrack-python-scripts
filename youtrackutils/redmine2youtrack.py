@@ -72,6 +72,7 @@ Options:
          YouTrack user to set as project lead for imported projects 
     -g   Generate mapping file from the defaults
     -w   Import time entries (works only with YouTrack 4.2 or higher)
+    -M   Treat descriptions and comments as Markdown while importing
     -l   Create a field linking imported redmine tasks with youtrack's
     -s   Skip an issue in case of server errors (instead terminating import)
 
@@ -91,7 +92,7 @@ Examples:
 def main():
     try:
         params = {}
-        opts, args = getopt.getopt(sys.argv[1:], 'hwsla:gu:p:U:P:m:t:T:d:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hwsla:gu:p:U:P:m:t:T:d:M')
         for opt, val in opts:
             if opt == '-h':
                 usage()
@@ -122,6 +123,8 @@ def main():
                 check_file_and_save(val, params, 'token_file')
             elif opt == '-d':
                 params['project_lead_login'] = val
+            elif opt == '-M':
+                params['use_markdown'] = True
     except getopt.GetoptError as e:
         print(e)
         usage()
@@ -538,6 +541,8 @@ class RedmineImporter(object):
     def _make_issue(self, redmine_issue, project_id):
         issue = youtrack.Issue()
         issue['comments'] = []
+        if self._params.get('use_markdown'):
+            issue['markdown'] = "true"
         try:
             if self._params.get('create_redmine_linkage', False):
                 self._add_field_to_issue(
@@ -695,6 +700,8 @@ class RedmineImporter(object):
         for rec in journals:
             if rec.notes is not None and rec.notes != '':
                 comment = youtrack.Comment()
+                if self._params.get('use_markdown'):
+                    comment.markdown = "true"
                 comment.text = rec.notes
                 comment.author = self._create_user(rec.user).login
                 comment.created = str(to_unixtime(rec.created_on))
@@ -784,11 +791,15 @@ class RedmineImporter(object):
                     try:
                         link.source = self._to_yt_issue_id(from_id)
                         link.target = self._to_yt_issue_id(to_id)
-                    except KeyError as e:
+                    except KeyError:
                         print("Cannot apply link (%s) to issues: %d and %d" %
                               (link_type, from_id, to_id))
-                        print("Some issues were not imported to YouTrack")
-                        raise e
+                        if hasattr(link, 'source') and link.source:
+                            print("The second issue was not imported")
+                            continue
+                        else:
+                            print("The first issues was not imported")
+                            break
                     links.append(link)
                     if len(links) >= limit:
                         self._target.importLinks(links)
