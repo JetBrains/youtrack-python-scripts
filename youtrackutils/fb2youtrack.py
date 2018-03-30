@@ -8,6 +8,7 @@ if sys.version_info >= (3, 0):
 
 import getopt
 import os
+import youtrack
 from youtrackutils.fbugz.fbSOAPClient import FBClient
 from youtrack.connection import Connection
 from youtrack import Group, User, Issue, Comment, Link
@@ -60,6 +61,8 @@ Options:
          YouTrack user password
     -m MAPPING_FILE,
          Path to mapping file that maps columns from csv to YouTrack fields
+    -d PROJECT_LEAD_LOGIN
+         YouTrack user to set as project lead for imported projects
 
 Examples:
 
@@ -80,7 +83,7 @@ Examples:
 def main():
     try:
         params = {}
-        opts, args = getopt.getopt(sys.argv[1:], 'hgu:p:m:t:T:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hgu:p:m:t:T:d:')
         for opt, val in opts:
             if opt == '-h':
                 usage()
@@ -97,6 +100,8 @@ def main():
                 params['token'] = val
             elif opt == '-T':
                 check_file_and_save(val, params, 'token_file')
+            elif opt == '-d':
+                params['project_lead_login'] = val
     except getopt.GetoptError as e:
         print(e)
         usage()
@@ -291,6 +296,17 @@ def fb2youtrack(params):
         print("You have to provide token or login/password to import data")
         sys.exit(1)
 
+    if not params.get('project_lead_login'):
+        project_lead = params.get('yt_login')
+        if not project_lead:
+            for login in ('root', 'admin', 'administrator', 'guest'):
+                try:
+                    project_lead = target.getUser(login).login
+                    break
+                except youtrack.YouTrackException:
+                    continue
+        params['project_lead_login'] = project_lead
+
     max_issue_id = params['fb_max_issue_id']
 
     project_names = youtrackutils.fbugz.PROJECTS_TO_IMPORT
@@ -384,7 +400,10 @@ def fb2youtrack(params):
 
         project_id = accessible_projects[project_name]
         print('Importing project [ %s ]' % project_name)
-        target.createProjectDetailed(project_id, project_name.encode('utf-8'), 'no description', 'root')
+        target.createProjectDetailed(project_id,
+                                     project_name.encode('utf-8'),
+                                     '',
+                                     params['project_lead_login'])
 
         print('Creating custom fields in project [ %s ]' % project_name)
 
