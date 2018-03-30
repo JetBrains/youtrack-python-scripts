@@ -289,11 +289,10 @@ class RedmineImporter(object):
                 self._projects['by_iid'][project.id] = project
                 self._projects['by_pid'][project.identifier] = project
         if project_ids:
-            result = {}
-            for pid in [re.sub('\W', '', p) for p in project_ids]:
-                try:
-                    result[pid] = self._projects[by][pid]
-                except KeyError:
+            for pid in project_ids:
+                if by == 'by_pid':
+                    pid = re.sub('\W', '', pid)
+                if pid not in self._projects[by]:
                     raise youtrackutils.redmine.RedmineException(
                         "Project '%s' doesn't exist in Redmine" % pid)
         return self._projects[by]
