@@ -1,6 +1,6 @@
 import re
 from youtrackutils.fbugz.fogbugz import FogBugz
-from youtrackutils.fbugz import FBUser, FBArea, FBMilestone, FBIssue, FBComment
+from youtrackutils.fbugz import FBUser, FBArea, FBMilestone, FBIssue, FBComment, FBAttachment
 from datetime import datetime
 import calendar
 
@@ -183,7 +183,7 @@ class FBClient(object):
         attachments = []
         for event in events:
             for a in event.findAll('attachment'):
-                attach = fbugz.FBAttachment(self._source_url, a.surl.string)
+                attach = FBAttachment(self._source_url, a.surl.string)
                 attach.authorLogin = self.convert_login(event.sperson.string)
                 attach.token = self._client.get_token()
                 attachments.append(attach)
