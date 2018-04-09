@@ -7,6 +7,7 @@ if sys.version_info >= (3, 0):
     sys.exit(1)
 
 import os
+import re
 import requests
 import csv
 import youtrackutils.csvClient
@@ -114,7 +115,6 @@ def main():
 
     if github_repo.find('/') > -1:
         github_repo_owner, github_repo = github_repo.split('/')
-        github_repo = github_repo.replace('/', '_').replace('-', '_')
     else:
         github_repo_owner = github_user
 
@@ -176,7 +176,7 @@ def write_issues(r, issues_csvout, comments_csvout, repo, auth):
         if not author:
             author = get_last_part_of_url(issue['user'].get('url'))
 
-        project = get_last_part_of_url(repo)
+        project = re.sub(r'[^\w]', '_', get_last_part_of_url(repo))
 
         milestone = issue.get('milestone')
         if milestone:
