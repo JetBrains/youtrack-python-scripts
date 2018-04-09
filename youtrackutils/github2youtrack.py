@@ -1,11 +1,12 @@
 #! /usr/bin/env python
-
+import getopt
 import sys
 
 if sys.version_info >= (3, 0):
     print("\nThe script doesn't support python 3. Please use python 2.7+\n")
     sys.exit(1)
 
+import os
 import requests
 import csv
 import youtrackutils.csvClient
@@ -42,24 +43,101 @@ youtrackutils.csvClient.USE_MARKDOWN = True
 
 CSV_FILE = "github2youtrack-{repo}-{data}.csv"
 
+help_url = "\
+https://www.jetbrains.com/help/youtrack/standalone/import-from-github.html"
+
+
+def usage():
+    basename = os.path.basename(sys.argv[0])
+
+    print("""
+Usage:
+    %s [OPTIONS] yt_url gh_login gh_password gh_repo
+
+    yt_url     YouTrack base URL
+
+    gh_login     The username to log in to GitHub
+
+    gh_password  The password to log in to GitHub
+
+    gh_repo      The name of the GitHub repository to import issues from
+
+    For instructions, see:
+    %s
+
+Options:
+    -h,  Show this help and exit
+    -T TOKEN_FILE,
+         Path to file with permanent token
+    -t TOKEN,
+         Value for permanent token as text
+    -u LOGIN,
+         YouTrack user login to perform import on behalf of
+    -p PASSWORD,
+         YouTrack user password
+
+Examples:
+
+    $ %s -T token https://youtrack.company.com gh-user gh-pass test-repo
+
+
+""" % (basename, help_url, basename))
+
 
 def main():
-    github_user, github_password, github_repo, youtrack_url, youtrack_login, youtrack_password = sys.argv[1:8]
+    try:
+        params = {}
+        opts, args = getopt.getopt(sys.argv[1:], 'hu:p:t:T:')
+        for opt, val in opts:
+            if opt == '-h':
+                usage()
+                sys.exit(0)
+            elif opt == '-u':
+                params['login'] = val
+            elif opt == '-p':
+                params['password'] = val
+            elif opt == '-t':
+                params['token'] = val
+            elif opt == '-T':
+                check_file_and_save(val, params, 'token_file')
+    except getopt.GetoptError as e:
+        print(e)
+        usage()
+        sys.exit(1)
+
+    try:
+        params['target_url'], github_user, github_password, github_repo = args
+    except (ValueError, KeyError, IndexError):
+        print("Bad arguments")
+        usage()
+        sys.exit(1)
+
     if github_repo.find('/') > -1:
         github_repo_owner, github_repo = github_repo.split('/')
         github_repo = github_repo.replace('/', '_').replace('-', '_')
     else:
         github_repo_owner = github_user
-    issues_csv_file = CSV_FILE.format(repo=github_repo, data='issues')
-    comments_csv_file = CSV_FILE.format(repo=github_repo, data='comments')
-    github2csv(issues_csv_file, comments_csv_file,
-               github_user, github_password, github_repo, github_repo_owner)
-    csv2youtrack.csv2youtrack(
-        dict(issues_file=issues_csv_file,
-             target_url=youtrack_url,
-             login=youtrack_login,
-             password=youtrack_password,
-             comments_file=comments_csv_file))
+
+    params['issues_file'] = CSV_FILE.format(repo=github_repo, data='issues')
+    params['comments_file'] = CSV_FILE.format(repo=github_repo, data='comments')
+
+    github2csv(params['issues_file'],
+               params['comments_file'],
+               github_user,
+               github_password,
+               github_repo,
+               github_repo_owner)
+
+    csv2youtrack.csv2youtrack(params)
+
+
+def check_file_and_save(filename, params, key):
+    try:
+        params[key] = os.path.abspath(filename)
+    except (OSError, IOError) as e:
+        print("Data file is not accessible: " + str(e))
+        print(filename)
+        sys.exit(1)
 
 
 def get_last_part_of_url(url_string):
