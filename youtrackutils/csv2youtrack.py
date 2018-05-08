@@ -383,13 +383,16 @@ class CsvYouTrackImporter(YouTrackImporter):
 
     def _get_issue_links(self, project_id, after=0, limit=0):
         key = self._import_config.get_key_for_field_name(u'Links')
+        delimiter = getattr(csvClient,
+                            'VALUE_DELIMITER',
+                            csvClient.CSV_DELIMITER)
         links = []
         for issue in self._get_issues(project_id):
             source_id = self._get_yt_issue_id(issue)
             self._link_importer.created_issue_ids.add(source_id)
             if key not in issue:
                 continue
-            link_groups = issue[key].split(';')
+            link_groups = issue[key].split(delimiter)
             for group in link_groups:
                 ids = group.split(csvClient.CSV_DELIMITER)
                 if len(ids) < 2:
@@ -409,6 +412,15 @@ class CsvYouTrackImporter(YouTrackImporter):
                     link.target = i
                     links.append(link)
         return links
+
+    def _get_issue_tags(self, project_id):
+        key = self._import_config.get_key_for_field_name(u'Tags')
+        delimiter = getattr(csvClient,
+                            'VALUE_DELIMITER',
+                            csvClient.CSV_DELIMITER)
+        return ((self._get_issue_id(issue), issue[key].split(delimiter))
+                for issue in self._get_issues(project_id)
+                if (key in issue) and len(issue[key]))
 
     def _get_custom_field_names(self):
         project_name_key = self._import_config.get_key_for_field_name(

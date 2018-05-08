@@ -19,7 +19,7 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='youtrack-scripts',
-    version='0.1.16',
+    version='0.1.17',
     python_requires='>=2.6, <3',
     packages=['youtrackutils',
               'youtrackutils.bugzilla',
