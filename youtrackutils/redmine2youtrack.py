@@ -697,7 +697,7 @@ class RedmineImporter(object):
         if not journals:
             return
         for rec in journals:
-            if rec.notes is not None and rec.notes != '':
+            if hasattr(rec, 'notes') and rec.notes is not None and rec.notes != '':
                 comment = youtrack.Comment()
                 if self._params.get('use_markdown'):
                     comment.markdown = "true"
