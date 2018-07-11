@@ -19,7 +19,7 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='youtrack-scripts',
-    version='0.1.17',
+    version='0.1.18',
     python_requires='>=2.6, <3',
     packages=['youtrackutils',
               'youtrackutils.bugzilla',
@@ -52,7 +52,7 @@ setup(
     },
     install_requires=[
         "python-dateutil",
-        "youtrack >= 0.1.9",
+        "youtrack >= 0.1.8",
         "pyactiveresource",        # for Redmine import script
         # Commented out because the package installation can fail in case
         # if mysql is not installed on local machine
