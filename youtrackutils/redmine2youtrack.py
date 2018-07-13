@@ -555,15 +555,15 @@ class RedmineImporter(object):
                     value = str(self._get_yt_issue_number(redmine_issue))
                 if name == 'custom_fields':
                     for field in value:
-                        self._add_field_to_issue(
-                            project_id, issue, field.name, field.value)
+                        self._add_field_to_issue(project_id,
+                                                 issue,
+                                                 field.name,
+                                                 getattr(field, 'value', None))
                 elif name == 'journals':
                     self._add_journals(issue, value)
                 else:
                     if name == 'category':
                         value = self._to_yt_subsystem(value)
-                    if name == 'fixed_version':
-                        value = self._to_yt_version(value)
                     self._add_field_to_issue(project_id, issue, name, value)
         except Exception as e:
             print('Failed to process issue:')
@@ -632,6 +632,8 @@ class RedmineImporter(object):
                 value.name = self._create_user(value).login
             else:
                 value = self._create_user(value).login
+        elif field_type.startswith('version'):
+            value = self._to_yt_version(value)
         if field_name == 'Assignee':
             return value
         if field_name in youtrack.EXISTING_FIELDS:
@@ -646,7 +648,7 @@ class RedmineImporter(object):
                 value = value.value
             elif hasattr(value, 'name'):
                 if not (field_type.startswith('version') or
-                            field_type.startswith('ownedField')):
+                        field_type.startswith('ownedField')):
                     value = value.name
             self._target.addValueToBundle(bundle, value)
         except youtrack.YouTrackException as e:
