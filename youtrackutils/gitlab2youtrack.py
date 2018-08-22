@@ -1,8 +1,12 @@
 #! /usr/bin/env python
 
 # Contributed by yavin5 <yavinfive464@gmail.com>
-# Adapted from github2youtrack.py
+# Adapted from github2youtrack.py, tested against Gitlab 11.0.x with API v4
 # Currently issue comment attachments are not migrated, but everything else is.
+# 
+# Example command to invoke it:
+#
+#      $ gitlab2youtrack -t perm:avre4asv834.A0sd9f4aSSDFa343t.3sd23ER48cl2FecSAd45Sd7vAE2Z05 -u yavin5 -p pw4yavin5 https://mycompany.myjetbrains.com/youtrack https://git.mycompany.com/api/v4 yavin5 b4iEIjf6RcOaQP26doRx my-group/my-project 2
 import getopt
 import sys
 
