@@ -457,6 +457,8 @@ class CsvYouTrackImportConfig(YouTrackImportConfig):
                 date[:-6],
                 csvClient.DATE_FORMAT_STRING[:-2].rstrip())
         else:
+            p = re.compile('(\.\d\d\d)+', re.VERBOSE)
+            date = p.sub(r'', date)
             dt = datetime.datetime.strptime(
                 date, csvClient.DATE_FORMAT_STRING)
         return str(calendar.timegm(dt.timetuple()) * 1000)
