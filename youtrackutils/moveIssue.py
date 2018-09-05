@@ -28,7 +28,7 @@ def main():
             target_url, target_login, target_password, source_id, target)
 
 
-def check_user(user_login, source, target) :
+def check_user(user_login, source, target):
     if (user_login == "guest") or (user_login is None):
         return
     try:
@@ -53,6 +53,13 @@ def get_new_issue_id(project_id, target):
             issue_id = int(issue.numberInProject)
             if issue_id >= max_id:
                 max_id = issue_id + 1
+
+
+def get_time_tracking_state(source, target,
+                            source_project_id, target_project_id):
+    source_tt = source.getProjectTimeTrackingSettings(source_project_id)
+    target_tt = target.getProjectTimeTrackingSettings(target_project_id)
+    return source_tt and target_tt and source_tt.Enabled and target_tt.Enabled
 
 
 def do_move(source_url, source_login, source_password,
@@ -146,16 +153,51 @@ def do_move(source_url, source_login, source_password,
     for comment in target_issue.comments:
         check_user(comment.author, source, target)
 
-    # attachments
+    # import issue
     print(target.importIssues(
         target_project_id,
         target.getProjectAssigneeGroups(target_project_id)[0].name,
         [target_issue]))
+
+    # attachments
     for attachment in source_issue.getAttachments():
         check_user(attachment.authorLogin, source, target)
         target.createAttachmentFromAttachment(
             "%s-%s" % (target_project_id, target_issue.numberInProject),
             attachment)
+
+    # work items
+    if get_time_tracking_state(
+            source, target, source_issue_id.split('-')[0],
+            target_project_id):
+        workitems = source.getWorkItems(source_issue_id)
+        if workitems:
+            existing_workitems = dict()
+            target_workitems = target.getWorkItems(
+                target_project_id + '-' + target_issue_number)
+            if target_workitems:
+                for w in target_workitems:
+                    _id = '%s\n%s\n%s' % (w.date, w.authorLogin, w.duration)
+                    if hasattr(w, 'description'):
+                        _id += '\n%s' % w.description
+                    existing_workitems[_id] = w
+            new_workitems = []
+            for w in workitems:
+                _id = '%s\n%s\n%s' % (w.date, w.authorLogin, w.duration)
+                if hasattr(w, 'description'):
+                    _id += '\n%s' % w.description
+                if _id not in existing_workitems:
+                    new_workitems.append(w)
+            if new_workitems:
+                print("Process workitems for issue [ " + source_issue_id + "]")
+                try:
+                    for w in new_workitems:
+                        check_user(w.authorLogin, source, target)
+                    target.importWorkItems(
+                        target_project_id + '-' + target_issue_number,
+                        new_workitems)
+                except YouTrackException as e:
+                    print("Failed to import workitems: " + str(e))
 
 
 if __name__ == "__main__":
