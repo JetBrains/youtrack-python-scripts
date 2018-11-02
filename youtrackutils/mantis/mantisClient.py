@@ -209,7 +209,9 @@ class MantisClient(object):
         content_row = "content"
         user_id_row = "user_id"
         date_added_row = "date_added"
-        rows_to_get = [id_row, title_row, filename_row, file_type_row, content_row, user_id_row, date_added_row]
+        diskfile_row = "diskfile"
+        folder_row = "folder"
+        rows_to_get = [id_row, title_row, diskfile_row, folder_row, filename_row, file_type_row, content_row, user_id_row, date_added_row]
         request = "SELECT %s FROM mantis_bug_file_table WHERE bug_id=%s" % (", ".join(rows_to_get), bug_id)
         cursor.execute(request)
         result = []
@@ -218,9 +220,15 @@ class MantisClient(object):
             attachment.title = row[title_row]
             attachment.filename = row[filename_row]
             attachment.file_type = row[file_type_row]
-            attachment.content = row[content_row]
             attachment.author = self.get_user_by_id(row[user_id_row])
             attachment.date_added = self._to_epoch_time(row[date_added_row])
+            if row[content_row] and not row[diskfile_row]:
+                print "GET CONTENT FROM DB"
+                attachment.content = row[content_row]
+            else:
+                print "GET CONTENT FROM DISK"
+                file_path = row[folder_row].rstrip("/") + "/" + row[diskfile_row]
+                attachment.content = open(file_path.encode('utf-8'))
             result.append(attachment)
         return result
 
