@@ -223,10 +223,8 @@ class MantisClient(object):
             attachment.author = self.get_user_by_id(row[user_id_row])
             attachment.date_added = self._to_epoch_time(row[date_added_row])
             if row[content_row] and not row[diskfile_row]:
-                print "GET CONTENT FROM DB"
                 attachment.content = row[content_row]
             else:
-                print "GET CONTENT FROM DISK"
                 file_path = row[folder_row].rstrip("/") + "/" + row[diskfile_row]
                 with open(file_path.encode('utf-8')) as f:
                     attachment.content = f.read()
