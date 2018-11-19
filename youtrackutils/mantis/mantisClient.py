@@ -228,7 +228,8 @@ class MantisClient(object):
             else:
                 print "GET CONTENT FROM DISK"
                 file_path = row[folder_row].rstrip("/") + "/" + row[diskfile_row]
-                attachment.content = open(file_path.encode('utf-8'))
+                with open(file_path.encode('utf-8')) as f:
+                    attachment.content = f.read()
             result.append(attachment)
         return result
 
