@@ -8,6 +8,7 @@ if sys.version_info >= (3, 0):
 
 from youtrack import Issue, YouTrackException
 from youtrack.connection import Connection
+from youtrack.sync.links import LinkImporter
 
 PREDEFINED_FIELDS = ["summary", "description", "created", "updated",
                      "updaterName", "resolved", "reporterName",
@@ -156,7 +157,7 @@ def do_move(source_url, source_login, source_password,
     # import issue
     print(target.importIssues(
         target_project_id,
-        target.getProjectAssigneeGroups(target_project_id)[0].name,
+        "",
         [target_issue]))
 
     # attachments
@@ -198,6 +199,16 @@ def do_move(source_url, source_login, source_password,
                         new_workitems)
                 except YouTrackException as e:
                     print("Failed to import workitems: " + str(e))
+
+    # links
+    link_importer = LinkImporter(target)
+    links2import = source_issue.getLinks()
+    link_importer.collectLinks(links2import)
+    link_importer.addAvailableIssue(source_issue)
+    for l in links2import:
+        link_importer.addAvailableIssue(source.getIssue(l.source))
+        link_importer.addAvailableIssue(source.getIssue(l.target))
+    link_importer.importCollectedLinks()
 
 
 if __name__ == "__main__":
