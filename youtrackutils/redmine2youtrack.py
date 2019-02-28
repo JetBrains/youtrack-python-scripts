@@ -408,7 +408,7 @@ class RedmineImporter(object):
             version = youtrack.Version()
             version.name = redmine_version.name
             version.description = redmine_version.description
-            if redmine_version.due_date:
+            if getattr(redmine_version, 'due_date', None):
                 version.releaseDate = str(to_unixtime(redmine_version.due_date))
             version.released = str(redmine_version.status == 'closed').lower()
             version.archived = 'false'
