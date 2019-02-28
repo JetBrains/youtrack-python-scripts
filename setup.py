@@ -16,10 +16,14 @@ except (ImportError, OSError, IOError, RuntimeError):
 with open(path.join(here, 'README.rst')) as f:
     long_description = f.read()
 
+# Get version from file
+with open(path.join(here, 'version')) as f:
+    version = f.read().strip()
+
 
 setup(
     name='youtrack-scripts',
-    version='0.1.23',
+    version=version,
     python_requires='>=2.6, <3',
     packages=['youtrackutils',
               'youtrackutils.bugzilla',
