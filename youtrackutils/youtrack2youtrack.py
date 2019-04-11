@@ -23,27 +23,31 @@ hours_in_a_day = 8
 def usage():
     print("""
 Usage:
-    %s [OPTIONS] s_url s_user s_pass t_url t_user t_pass [project_id ...]
+    %s [OPTIONS] s_url t_url [project_id ...]
 
     s_url         Source YouTrack URL
-    s_user        Source YouTrack user
-    s_pass        Source YouTrack user's password
     t_url         Target YouTrack URL
-    t_user        Target YouTrack user
-    t_pass        Target YouTrack user's password
     project_id    ProjectID to import
 
 Options:
+    -t  authorization token for source youtrack
+    -u  user login for source youtrack
+    -p  user password for source youtrack
+
+    -T  authorization token for target youtrack
+    -U  user login for target youtrack
+    -P  user password for target youtrack
+
     -h,  Show this help and exit
     -a,  Import attachments only
     -n,  Create new issues instead of importing them
     -c,  Add new comments to target issues
     -f,  Sync custom field values
-    -T,  Sync tags (tags will be created on behalf of logged in user)
+    -S,  Sync tags (tags will be created on behalf of logged in user)
     -r,  Replace old attachments with new ones (remove and re-import)
     -d,  Disable users caching
-    -p,  Covert period values (used as workaroud for JT-19362)
-    -t TIME_SETTINGS,
+    -w,  Covert period values (used as workaround for JT-19362)
+    -s TIME_SETTINGS,
          Time Tracking settings in format "days_in_a_week:hours_in_a_day"
 """ % os.path.basename(sys.argv[0]))
 
@@ -55,12 +59,20 @@ def main():
     attachments_only = False
     try:
         params = {}
-        opts, args = getopt.getopt(sys.argv[1:], 'hanrcdfpt:T')
+        opts, args = getopt.getopt(sys.argv[1:], 'ht:z:u:p:U:P:anrcdfpws:T:S')
+        source_token = None
+        target_token = None
+
+        source_login= None
+        source_password = None
+        target_login= None
+        target_password = None
+
         for opt, val in opts:
             if opt == '-h':
                 usage()
                 sys.exit(0)
-            if opt == '-p':
+            if opt == '-w':
                 convert_period_values = True
             elif opt == '-a':
                 attachments_only = True
@@ -74,9 +86,9 @@ def main():
                 params['enable_user_caching'] = False
             elif opt == '-n':
                 params['create_new_issues'] = True
-            elif opt == '-T':
+            elif opt == '-S':
                 params['sync_tags'] = True
-            elif opt == '-t':
+            elif opt == '-s':
                 if ':' in val:
                     d, h = val.split(':')
                     if d:
@@ -85,9 +97,20 @@ def main():
                         hours_in_a_day = int(h)
                 else:
                     days_in_a_week = int(val)
-        (source_url, source_login, source_password,
-         target_url, target_login, target_password) = args[:6]
-        project_ids = args[6:]
+            elif opt == '-t':
+                source_token = val
+            elif opt == '-T':
+                target_token = val
+            elif opt == '-u':
+                source_login = val
+            elif opt == '-p':
+                source_password = val
+            elif opt == '-U':
+                target_login = val
+            elif opt == '-P':
+                target_password = val
+        (source_url, target_url) = args[:2]
+        project_ids = args[2:]
     except getopt.GetoptError as e:
         print(e)
         usage()
@@ -99,11 +122,11 @@ def main():
     if attachments_only:
         import_attachments_only(source_url, source_login, source_password,
                                 target_url, target_login, target_password,
-                                project_ids, params=params)
+                                project_ids, source_token, target_token, params=params)
     else:
         youtrack2youtrack(source_url, source_login, source_password,
                           target_url, target_login, target_password,
-                          project_ids, params=params)
+                          project_ids, '', source_token, target_token, params=params)
 
 
 def create_bundle_from_bundle(source, target, bundle_name, bundle_type, user_importer):
@@ -250,15 +273,15 @@ def create_issues(target, issues, last_issue_number):
 
 
 def youtrack2youtrack(source_url, source_login, source_password, target_url, target_login, target_password,
-                      project_ids, query='', params=None):
+                      project_ids, query='', source_token=None, target_token=None, params=None):
     if not len(project_ids):
         print("You should sign at least one project to import")
         return
     if params is None:
         params = {}
 
-    source = Connection(source_url, source_login, source_password)
-    target = Connection(target_url, target_login, target_password)
+    source = Connection(source_url, source_login, source_password) if(source_token is None) else Connection(source_url, token=source_token)
+    target = Connection(target_url, target_login, target_password) if(target_token is None) else Connection(target_url, token=target_token)
     #, proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8888)
 
     print("Import issue link types")
@@ -313,9 +336,11 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
     failed_commands = []
 
     for projectId in project_ids:
-        source = Connection(source_url, source_login, source_password)
-        target = Connection(target_url, target_login,
-            target_password) #, proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8888)
+        source = Connection(source_url, source_login, source_password) if (source_token is None) else Connection(
+            source_url, token=source_token)
+        target = Connection(target_url, target_login, target_password) if (target_token is None) else Connection(
+            target_url, token=target_token)
+        #, proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8888)
         #reset connections to avoid disconnections
         user_importer.resetConnections(source, target)
         link_importer.resetConnections(target)
@@ -613,7 +638,7 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
 
 def import_attachments_only(source_url, source_login, source_password,
                             target_url, target_login, target_password,
-                            project_ids, params=None):
+                            project_ids, source_token=None, target_token=None, params=None):
     if not project_ids:
         print('No projects to import. Exit...')
         return
@@ -621,8 +646,9 @@ def import_attachments_only(source_url, source_login, source_password,
         params = {}
     start = 0
     max = 20
-    source = Connection(source_url, source_login, source_password)
-    target = Connection(target_url, target_login, target_password)
+    source = Connection(source_url, source_login, source_password) if(source_token is None) else Connection(source_url, token=source_token)
+    target = Connection(target_url, target_login, target_password) if(target_token is None) else Connection(target_url, token=target_token)
+
     user_importer = UserImporter(source, target, caching_users=params.get('enable_user_caching', True))
     for projectId in project_ids:
         while True:
