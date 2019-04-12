@@ -25,7 +25,7 @@ from dateutil import parser
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 sys.stderr = sys.stdout
 
-CHUNK_SIZE = 100
+CHUNK_SIZE = 5
 
 help_url = "\
 https://www.jetbrains.com/help/youtrack/standalone/Import-from-Redmine.html"
@@ -714,7 +714,16 @@ class RedmineImporter(object):
     def _add_work_items(self, issue):
         import_data = []
         work_items = self._source.get_time_entries(issue.id)
-        for t in sorted(work_items, key=lambda t: t.spent_on):
+        flatten_work_items = []
+        for item in work_items:
+            if 'time_entries' in item.attributes:
+                time_entries = item.time_entries
+                for time_entry in time_entries:
+                    flatten_work_items.append(time_entry)
+            else:
+                flatten_work_items.append(item)
+
+        for t in sorted(flatten_work_items, key=lambda tt: tt.spent_on):
             work_item = youtrack.WorkItem()
             work_item.authorLogin = self._create_user(t.user).login
             work_item.date = str(to_unixtime(t.spent_on))
