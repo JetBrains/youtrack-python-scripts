@@ -25,7 +25,7 @@ from dateutil import parser
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 sys.stderr = sys.stdout
 
-CHUNK_SIZE = 5
+CHUNK_SIZE = 100
 
 help_url = "\
 https://www.jetbrains.com/help/youtrack/standalone/Import-from-Redmine.html"
