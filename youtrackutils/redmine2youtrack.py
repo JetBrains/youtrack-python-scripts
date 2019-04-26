@@ -339,18 +339,24 @@ class RedmineImporter(object):
         else:
             user_id = redmine_user.id
         if user_id not in self._users:
-            redmine_user = self._source.get_user(user_id)
+            try:
+                redmine_user = self._source.get_user(user_id)
+            except ResourceNotFound:
+                redmine_user = null
             user = youtrack.User()
-            try:
-                user.email = redmine_user.mail
-            except AttributeError:
-                pass
-            try:
-                # In some cases redmine user login can be empty or missing.
-                # So, both cases should be handled.
-                user.login = redmine_user.login
-            except AttributeError:
-                pass
+            
+            if redmine_user != null:
+                try:
+                    user.email = redmine_user.mail
+                except AttributeError:
+                    pass
+                try:
+                    # In some cases redmine user login can be empty or missing.
+                    # So, both cases should be handled.
+                    user.login = redmine_user.login
+                except AttributeError:
+                    pass
+                
             if not hasattr(user, 'login') or not user.login:
                 if hasattr(user, 'email'):
                     user.login = user.email
@@ -358,9 +364,10 @@ class RedmineImporter(object):
                     user.login = 'guest'
                 print('Cannot get login for user id=%s, set it to "%s"' %
                       (user_id, user.login))
+                
             # user.login = redmine_user.login or 'guest'
             # user.email = redmine_user.mail or 'example@example.com'
-            if user.login != 'guest':
+            if redmine_user != null and user.login != 'guest':
                 if redmine_user.firstname is None and redmine_user.lastname is None:
                     user.fullName = user.login
                 elif redmine_user.firstname is None:
@@ -371,8 +378,10 @@ class RedmineImporter(object):
                     user.fullName = redmine_user.firstname + ' ' + redmine_user.lastname
             else:
                 user.created = True
-            if hasattr(redmine_user, 'groups'):
+                
+            if redmine_user != null and hasattr(redmine_user, 'groups'):
                 user.groups = [self._to_yt_group(g) for g in redmine_user.groups]
+                
             self._users[user_id] = user
         return self._users[user_id]
 
