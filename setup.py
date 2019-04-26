@@ -56,7 +56,7 @@ setup(
     },
     install_requires=[
         "python-dateutil",
-        "youtrack >= 0.1.8",
+        "youtrack >= 0.1.12",
         "pyactiveresource",        # for Redmine import script
         # Commented out because the package installation can fail in case
         # if mysql is not installed on local machine
