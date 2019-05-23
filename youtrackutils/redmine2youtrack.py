@@ -214,7 +214,7 @@ class RedmineImporter(object):
                 params['rm_api_key'],
                 params['rm_url']
             )
-        elif 'rm_user' in params:
+        elif 'rm_login' in params:
             self._source = youtrackutils.redmine.RedmineClient(
                 None,
                 params['rm_url'],
@@ -342,10 +342,10 @@ class RedmineImporter(object):
             try:
                 redmine_user = self._source.get_user(user_id)
             except ResourceNotFound:
-                redmine_user = null
+                redmine_user = None
             user = youtrack.User()
             
-            if redmine_user != null:
+            if redmine_user != None:
                 try:
                     user.email = redmine_user.mail
                 except AttributeError:
@@ -367,7 +367,7 @@ class RedmineImporter(object):
                 
             # user.login = redmine_user.login or 'guest'
             # user.email = redmine_user.mail or 'example@example.com'
-            if redmine_user != null and user.login != 'guest':
+            if redmine_user != None and user.login != 'guest':
                 if redmine_user.firstname is None and redmine_user.lastname is None:
                     user.fullName = user.login
                 elif redmine_user.firstname is None:
@@ -379,7 +379,7 @@ class RedmineImporter(object):
             else:
                 user.created = True
                 
-            if redmine_user != null and hasattr(redmine_user, 'groups'):
+            if redmine_user != None and hasattr(redmine_user, 'groups'):
                 user.groups = [self._to_yt_group(g) for g in redmine_user.groups]
                 
             self._users[user_id] = user
