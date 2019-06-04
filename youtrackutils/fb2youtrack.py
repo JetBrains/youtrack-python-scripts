@@ -223,9 +223,11 @@ def _to_yt_issue(fb_issue, value_sets):
 
 def add_field_values_to_bundle(connection, bundle, field_values):
     missing_names = calculate_missing_value_names(bundle, [value.name for value in field_values])
+    values_to_add = []
     for value in field_values:
         if value.name in missing_names:
-            connection.addValueToBundle(bundle, value)
+            values_to_add.append(value)
+    add_values_to_bundle_safe(connection, bundle, values_to_add)
 
 
 def _do_import_users(target, users_to_import):
