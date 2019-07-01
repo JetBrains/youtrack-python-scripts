@@ -63,9 +63,9 @@ def main():
         source_token = None
         target_token = None
 
-        source_login= None
+        source_login = None
         source_password = None
-        target_login= None
+        target_login = None
         target_password = None
 
         for opt, val in opts:
@@ -280,9 +280,11 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
     if params is None:
         params = {}
 
-    source = Connection(source_url, source_login, source_password) if(source_token is None) else Connection(source_url, token=source_token)
-    target = Connection(target_url, target_login, target_password) if(target_token is None) else Connection(target_url, token=target_token)
-    #, proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8888)
+    source = Connection(source_url, source_login, source_password) if (source_token is None) else Connection(source_url,
+                                                                                                             token=source_token)
+    target = Connection(target_url, target_login, target_password) if (target_token is None) else Connection(target_url,
+                                                                                                             token=target_token)
+    # , proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8888)
 
     print("Import issue link types")
     for ilt in source.getIssueLinkTypes():
@@ -294,19 +296,19 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
     user_importer = UserImporter(source, target, caching_users=params.get('enable_user_caching', True))
     link_importer = LinkImporter(target)
 
-    #create all projects with minimum info and project lead set
+    # create all projects with minimum info and project lead set
     created_projects = []
     for project_id in project_ids:
         created = create_project_stub(source, target, project_id, user_importer)
         created_projects.append(created)
 
-    #save created project ids to create correct group roles afterwards
+    # save created project ids to create correct group roles afterwards
     user_importer.addCreatedProjects([project.id for project in created_projects])
-    #import project leads with group they are included and roles assigned to these groups
+    # import project leads with group they are included and roles assigned to these groups
     user_importer.importUsersRecursively([target.getUser(project.lead) for project in created_projects])
-    #afterwards in a script any user import imply recursive import
+    # afterwards in a script any user import imply recursive import
 
-    cf_names_to_import = set([]) # names of cf prototypes that should be imported
+    cf_names_to_import = set([])  # names of cf prototypes that should be imported
     for project_id in project_ids:
         cf_names_to_import.update([pcf.name.capitalize() for pcf in source.getProjectCustomFields(project_id)])
 
@@ -322,7 +324,7 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
         print("Processing custom field '%s'" % utf8encode(cf_name))
         if cf_name in target_cf_names:
             target_cf = target.getCustomField(cf_name)
-            if not(target_cf.type == source_cf.type):
+            if not (target_cf.type == source_cf.type):
                 print("In your target and source YT instances you have field with name [ %s ]" % utf8encode(cf_name))
                 print("They have different types. Source field type [ %s ]. Target field type [ %s ]" %
                       (source_cf.type, target_cf.type))
@@ -340,8 +342,8 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
             source_url, token=source_token)
         target = Connection(target_url, target_login, target_password) if (target_token is None) else Connection(
             target_url, token=target_token)
-        #, proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8888)
-        #reset connections to avoid disconnections
+        # , proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, 'localhost', 8888)
+        # reset connections to avoid disconnections
         user_importer.resetConnections(source, target)
         link_importer.resetConnections(target)
 
@@ -355,7 +357,8 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
             pcf = source.getProjectCustomField(projectId, pcf_ref.name)
             if hasattr(pcf, "bundle"):
                 try:
-                    create_bundle_from_bundle(source, target, pcf.bundle, source.getCustomField(pcf.name).type, user_importer)
+                    create_bundle_from_bundle(source, target, pcf.bundle, source.getCustomField(pcf.name).type,
+                                              user_importer)
                 except youtrack.YouTrackException as e:
                     if e.response.status != 409:
                         raise e
@@ -474,7 +477,8 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
                                 if hasattr(c, 'permittedGroup'):
                                     group = c.permittedGroup
                                 try:
-                                    target.executeCommand(issue.id, 'comment', c.text, group, c.author, disable_notifications=True)
+                                    target.executeCommand(issue.id, 'comment', c.text, group, c.author,
+                                                          disable_notifications=True)
                                 except youtrack.YouTrackException as e:
                                     print('Cannot add comment to issue')
                                     print(e)
@@ -512,10 +516,12 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
                                     target_cf_value = set([target_cf_value])
                                 for v in target_cf_value:
                                     if v not in source_cf_value:
-                                        target.executeCommand(issue.id, 'remove %s %s' % (pcf.name, v), disable_notifications=True)
+                                        target.executeCommand(issue.id, 'remove %s %s' % (pcf.name, v),
+                                                              disable_notifications=True)
                                 for v in source_cf_value:
                                     if v not in target_cf_value:
-                                        target.executeCommand(issue.id, 'add %s %s' % (pcf.name, v), disable_notifications=True)
+                                        target.executeCommand(issue.id, 'add %s %s' % (pcf.name, v),
+                                                              disable_notifications=True)
                             else:
                                 if source_cf_value is None:
                                     source_cf_value = target.getProjectCustomField(projectId, pcf.name).emptyText
@@ -613,7 +619,8 @@ def youtrack2youtrack(source_url, source_login, source_password, target_url, tar
                                     print('Deleting old attachment')
                                     target.deleteAttachment(issue.id, old_attachment.id)
                             except BaseException as e:
-                                print("Cannot delete attachment '%s' from issue %s" % (utf8encode(a.name), utf8encode(issue.id)))
+                                print("Cannot delete attachment '%s' from issue %s" % (
+                                utf8encode(a.name), utf8encode(issue.id)))
                                 print(e)
 
             except Exception as e:
@@ -646,8 +653,10 @@ def import_attachments_only(source_url, source_login, source_password,
         params = {}
     start = 0
     max = 20
-    source = Connection(source_url, source_login, source_password) if(source_token is None) else Connection(source_url, token=source_token)
-    target = Connection(target_url, target_login, target_password) if(target_token is None) else Connection(target_url, token=target_token)
+    source = Connection(source_url, source_login, source_password) if (source_token is None) else Connection(source_url,
+                                                                                                             token=source_token)
+    target = Connection(target_url, target_login, target_password) if (target_token is None) else Connection(target_url,
+                                                                                                             token=target_token)
 
     user_importer = UserImporter(source, target, caching_users=params.get('enable_user_caching', True))
     for projectId in project_ids:
@@ -698,7 +707,8 @@ def import_attachments_only(source_url, source_login, source_password,
                                     print('Deleting old attachment')
                                     target.deleteAttachment(issue.id, old_attachment.id)
                             except BaseException as e:
-                                print("Cannot delete attachment '%s' from issue %s" % (utf8encode(a.name), utf8encode(issue.id)))
+                                print("Cannot delete attachment '%s' from issue %s" % (
+                                utf8encode(a.name), utf8encode(issue.id)))
                                 print(e)
             except Exception as e:
                 print('Cannot process issues from %d to %d' % (start, start + max))
