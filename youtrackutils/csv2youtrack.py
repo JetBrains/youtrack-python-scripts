@@ -175,7 +175,7 @@ def generate_mapping_file(issues_csv_filename, mapping_filename=None):
     )
     try:
         with open(mapping_filename, 'w') as f:
-            json.dump(mapping_data, f, sort_keys=True, indent=4)
+            json.dump(mapping_data, f, sort_keys=True, indent=4, ensure_ascii=False)
         print("Mapping file has been written to " + mapping_filename)
     except (IOError, OSError) as e:
         print("Failed to write mapping file: " + str(e))
@@ -491,7 +491,7 @@ class CsvYouTrackImportConfig(YouTrackImportConfig):
 
     def get_field_info(self, field_name):
         result = {AUTO_ATTACHED: self._get_default_auto_attached(),
-                  NAME: self._name_mapping.get(field_name, field_name),
+                  NAME: self._name_mapping.get(field_name, field_name).decode('utf-8'),
                   TYPE: None}
         if result[NAME] in self._type_mapping:
             result[TYPE] = self._type_mapping[result[NAME]]
