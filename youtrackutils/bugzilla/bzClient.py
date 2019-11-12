@@ -261,7 +261,7 @@ class Client(object):
                         result[elem] = row[elem_row]
         for cf in multiple_fields:
             mult_cursor = self.sql_cnx.cursor()
-            mult_cursor.execute("SELECT value FROM bug_cf_" + cf + " WHERE bug_id = %s", (str(bug_id)))
+            mult_cursor.execute("SELECT value FROM bug_cf_" + cf + " WHERE bug_id = %s" % str(bug_id))
             result[cf] = list([])
             for row in mult_cursor:
                 if row['value'] != '---':
