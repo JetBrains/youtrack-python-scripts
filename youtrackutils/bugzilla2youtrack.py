@@ -17,6 +17,7 @@ from StringIO import StringIO
 import youtrackutils.bugzilla.defaultBzMapping
 import youtrackutils.bugzilla
 import os
+import urllib2
 from youtrack.importHelper import create_custom_field, process_custom_field
 
 # Enable unbuffered output
@@ -518,10 +519,11 @@ def bugzilla2youtrack(params):
                         target.importAttachment(
                             issue_id, attach.name, content, attach.reporter.login,
                             None, None, str(int(attach.created) * 1000))
-                    except Exception as e:
+                    except urllib2.HTTPError as e:
                         print("WARN: Cant import attachment [ %s ]" %
                               utf8encode(attach.name))
-                        print(repr(e))
+                        print(e.code)
+                        print(e.read())
                         print("Please check Max Upload File Size in YouTrack")
                         continue
         print("Importing issues to project [ %s ] finished" % product_id)
