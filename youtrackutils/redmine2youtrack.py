@@ -467,19 +467,20 @@ class RedmineImporter(object):
         if members:
             for member in members:
                 # Sometimes roles can be duplicated
-                roles = set([r.name for r in member.roles])
-                if hasattr(member, 'group'):
-                    group = self._to_yt_group(member.group.name)
-                    for role in roles:
-                        if role not in groups_by_role:
-                            groups_by_role[role] = []
-                        groups_by_role[role].append(group)
-                else:
-                    user = self._to_yt_user(member.user)
-                    for role in roles:
-                        if role not in users_by_role:
-                            users_by_role[role] = []
-                        users_by_role[role].append(user)
+                if hasattr(member, 'roles'):
+                    roles = set([r.name for r in member.roles])
+                    if hasattr(member, 'group'):
+                        group = self._to_yt_group(member.group.name)
+                        for role in roles:
+                            if role not in groups_by_role:
+                                groups_by_role[role] = []
+                            groups_by_role[role].append(group)
+                    else:
+                        user = self._to_yt_user(member.user)
+                        for role in roles:
+                            if role not in users_by_role:
+                                users_by_role[role] = []
+                            users_by_role[role].append(user)
         for role_name, users in users_by_role.items():
             group = self._to_yt_group('%s %s' % (project_id.upper(), role_name))
             self._create_group(group)
