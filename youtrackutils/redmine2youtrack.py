@@ -214,7 +214,7 @@ class RedmineImporter(object):
                 params['rm_api_key'],
                 params['rm_url']
             )
-        elif 'rm_user' in params:
+        elif 'rm_login' in params:
             self._source = youtrackutils.redmine.RedmineClient(
                 None,
                 params['rm_url'],
