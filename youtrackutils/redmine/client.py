@@ -132,13 +132,16 @@ class RedmineClient(object):
         else:
             issues = Issue.find(None, None, project_id=_id, sort='id', status_id='*')
         for issue in issues:
-            try:
-                details = self.get_issue_details(issue.id)
-                return_data.append(details)
-            except ServerError, se:
-                print "Wasn't able to process issue " + issue.id
-                if not _skip_on_error:
-                    raise se
+            if (hasattr(issue, 'id'))
+                try:
+                    details = self.get_issue_details(issue.id)
+                    return_data.append(details)
+                except ServerError, se:
+                    print "Wasn't able to process issue " + issue.id
+                    if not _skip_on_error:
+                        raise se
+            else
+                print "WARN: Found an issue without id: " + pprint.pformat(issue.attributes, indent=2, width=140)
         return return_data
 
     def get_user(self, user_id):
