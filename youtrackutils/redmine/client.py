@@ -141,7 +141,8 @@ class RedmineClient(object):
                     if not _skip_on_error:
                         raise se
             else:
-                print "WARN: Found an issue without id: " + pprint.pformat(issue.attributes, indent=2, width=140)
+                print "WARN: Found an issue without an id:"
+                print issue.__dict__
         return return_data
 
     def get_user(self, user_id):
