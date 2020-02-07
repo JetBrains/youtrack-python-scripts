@@ -140,11 +140,15 @@ class RedmineClient(object):
                     print "Wasn't able to process issue " + issue.id
                     if not _skip_on_error:
                         raise se
-            elif (hasattr(issue, '__dict__')):
-                print "WARN: Found an issue without an id:"
-                print issue.__dict__
             else:
-                print "WARN: Found an issue without an id, skipping"
+                for packed_issue in issue['issues']:
+                    try:
+                        details = self.get_issue_details(packed_issue['id'])
+                        return_data.append(details)
+                    except ServerError, se:
+                        print "Wasn't able to process issue " + packed_issue['id']
+                        if not _skip_on_error:
+                            raise se
         return return_data
 
     def get_user(self, user_id):
