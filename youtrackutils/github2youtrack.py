@@ -225,6 +225,8 @@ def github2csv(issues_csv_file, comments_csv_file, github_user, github_password,
          'Created', 'Updated', 'Resolved', 'Author', 'Assignee', 'Labels',
          'Type', 'Milestone'))
     comments_csvout = csv.writer(open(comments_csv_file, 'wb'))
+    comments_csvout.writerow(
+        ('Project Id', 'Id', 'Author', 'Created', 'Text'))
     write_issues(r, issues_csvout, comments_csvout, github_repo, AUTH)
 
     #more pages? examine the 'link' header returned
