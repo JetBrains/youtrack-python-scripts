@@ -172,7 +172,7 @@ class Client(object):
                 issue.summary = row[14]
                 issue.description = row[15]
                 issue.custom_fields["Type"] = row[1]
-                issue.custom_fields["Component"] = None if row[4] is None else row[4].replace('/', '-')
+                issue.custom_fields["Component"] = None if row[4] is None else row[4].replace("/", "-")
                 issue.custom_fields["Severity"] = row[5]
                 issue.custom_fields["Priority"] = row[6]
                 issue.custom_fields["Owner"] = self._get_user_login(row[7])
