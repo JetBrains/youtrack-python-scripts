@@ -44,16 +44,16 @@ def check_user(user_login, source, target):
 
 
 def get_new_issue_id(project_id, target):
-    max_id = 1
+    max_id = 0
     max_number = 100
     while True:
         issues = target.getIssues(project_id, "", max_id, max_number)
         if len(issues) == 0:
-            return max_id
+            return max_id + 1
         for issue in issues:
             issue_id = int(issue.numberInProject)
             if issue_id >= max_id:
-                max_id = issue_id + 1
+                max_id = issue_id
 
 
 def get_time_tracking_state(source, target,
