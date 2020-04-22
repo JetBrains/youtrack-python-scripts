@@ -163,6 +163,7 @@ def do_move(source_url, source_login, source_password,
     # attachments
     for attachment in source_issue.getAttachments():
         check_user(attachment.authorLogin, source, target)
+        attachment.url = attachment.url.replace(source_url, "")
         target.createAttachmentFromAttachment(
             "%s-%s" % (target_project_id, target_issue.numberInProject),
             attachment)
