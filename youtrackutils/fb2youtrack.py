@@ -139,8 +139,8 @@ def check_file_and_save(filename, params, key):
 
 def get_mappings():
     return dict(
-        __help__="For instructions, see: " + help_url +
-                 "#customize-mapping-file",
+        __help__=u"For instructions, see: " + help_url +
+                 u"#customize-mapping-file",
         cf_types=youtrackutils.fbugz.CF_TYPES,
         cf_names=youtrackutils.fbugz.CF_NAMES,
         projects_to_import=youtrackutils.fbugz.PROJECTS_TO_IMPORT
