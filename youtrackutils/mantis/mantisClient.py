@@ -216,18 +216,21 @@ class MantisClient(object):
         cursor.execute(request)
         result = []
         for row in cursor:
-            attachment = MantisAttachment(row[id_row])
-            attachment.title = row[title_row]
-            attachment.filename = row[filename_row]
-            attachment.file_type = row[file_type_row]
-            attachment.author = self.get_user_by_id(row[user_id_row])
-            attachment.date_added = self._to_epoch_time(row[date_added_row])
-            if row[content_row] and not row[diskfile_row]:
-                attachment.content = row[content_row]
-            else:
-                file_path = row[folder_row].rstrip("/") + "/" + row[diskfile_row]
-                with open(file_path.encode('utf-8')) as f:
-                    attachment.content = f.read()
+            try:
+                attachment = MantisAttachment(row[id_row])
+                attachment.title = row[title_row]
+                attachment.filename = row[filename_row]
+                attachment.file_type = row[file_type_row]
+                attachment.author = self.get_user_by_id(row[user_id_row])
+                attachment.date_added = self._to_epoch_time(row[date_added_row])
+                if row[content_row]:
+                    attachment.content = row[content_row]
+                else:
+                    file_path = row[folder_row].rstrip("/") + "/" + row[diskfile_row]
+                    with open(file_path.encode('utf-8')) as f:
+                        attachment.content = f.read()
+            except:
+                print "Skip attach"
             result.append(attachment)
         return result
 
