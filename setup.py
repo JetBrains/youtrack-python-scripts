@@ -63,6 +63,7 @@ setup(
         # "MySQL-python",            # for BugZilla and Mantis import scripts
         "BeautifulSoup >= 3.2.0",  # for FogBugz import script
         "Trac >= 1.0.1",           # for Track import script
-        "requests"                 # for github import script
+        "requests"                 # for github import script,
+        "setuptools<45"
     ]
 )
