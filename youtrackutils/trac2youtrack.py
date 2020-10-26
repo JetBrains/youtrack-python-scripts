@@ -165,9 +165,10 @@ def to_youtrack_issue(project_ID, trac_issue, check_box_fields):
         if (custom_fields["Resolution"] is not None) and (custom_fields["Resolution"] == "fixed"):
             issue["State"] = "Verified"
 
-    issue.comments = []
+    unsorted_comments = []
     for comment in trac_issue.comments:
-        issue.comments.append(to_youtrack_comment(project_ID, comment))
+        unsorted_comments.append(to_youtrack_comment(project_ID, comment))
+    issue.comments = sorted(unsorted_comments, key=lambda it: it.created)
     return issue
 
 
