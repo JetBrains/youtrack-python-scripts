@@ -1,5 +1,8 @@
 [![official JetBrains project](http://jb.gg/badges/official-flat-square.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 
+# Before you begin
+YouTrack provides built-in imports from Jira, GitHub, Mantis, and Redmine. It also lets you set up a migration from one YouTrack instance to another. If you want to import issues from one of these sources, we strongly encourage you to use the built-in import feature instead of the scripts in this repository.
+
 # YouTrack Python Scripts
 This repository contains a collection of command-line tools for interacting with the YouTrack REST API client library for Python. At present, the package only contains scripts for importing issues from other issue trackers. The scripts reference the YouTrack REST API client library for Python that is published in a [separate repository](https://github.com/JetBrains/youtrack-rest-python-library).
 
