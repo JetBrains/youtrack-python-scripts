@@ -1,3 +1,7 @@
+import warnings
+
+warnings.warn("deprecated", DeprecationWarning)
+
 __author__ = 'user'
 
 NAMES = {

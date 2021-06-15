@@ -1,6 +1,9 @@
 import cgi
 from time import time
 import urllib2
+import warnings
+
+warnings.warn("deprecated", DeprecationWarning)
 
 CATEGORY = dict([])
 PRIORITY = dict([])

@@ -1,3 +1,7 @@
+import warnings
+
+warnings.warn("deprecated", DeprecationWarning)
+
 CUSTOM_FIELD_TYPES = None
 PERMISSIONS = None
 DEFAULT_EMAIL = " "

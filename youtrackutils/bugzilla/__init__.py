@@ -1,4 +1,7 @@
 import time
+import warnings
+
+warnings.warn("deprecated", DeprecationWarning)
 
 FIELD_TYPES = dict()
 FIELD_NAMES = dict()

@@ -1,3 +1,7 @@
+import warnings
+
+warnings.warn("deprecated", DeprecationWarning)
+
 CF_TYPES = dict([])
 LINK_TYPES = dict([])
 CREATE_CF_FOR_SUBPROJECT = True

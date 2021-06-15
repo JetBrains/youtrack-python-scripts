@@ -1,3 +1,7 @@
+import warnings
+
+warnings.warn("deprecated", DeprecationWarning)
+
 # represents the format of the string (see http://docs.python.org/library/datetime.html#strftime-strptime-behavior)
 # format symbol "z" doesn't wok sometimes, maybe you will need to change csv2youtrack.to_unix_date(time_string)
 DATE_FORMAT_STRING = ""
