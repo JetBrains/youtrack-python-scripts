@@ -1,7 +1,10 @@
 [![official JetBrains project](http://jb.gg/badges/official-flat-square.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 
 # Deprecation Notice
-This package is deprecated and will not work with YouTrack 2021.3 and later. YouTrack provides built-in imports from Jira, GitHub, Mantis, and Redmine. It also lets you set up a migration from one YouTrack instance to another. If you want to import issues from one of these sources, we strongly encourage you to use the built-in import feature instead of the scripts in this repository.
+This package is deprecated and will not work with YouTrack 2021.3 and later.
+
+YouTrack provides built-in imports from Jira, GitHub, Mantis, and Redmine. It also lets you set up a migration from one YouTrack instance to another. If you want to import issues from one of these sources, we strongly encourage you to use the built-in import feature instead of the scripts in this repository.
+
 The package will also receive little support and maintenance, if any.
 
 # YouTrack Python Scripts
